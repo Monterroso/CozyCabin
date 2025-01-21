@@ -25,6 +25,8 @@ export const SignUpForm: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      console.log('Attempting signup with redirect:', 'https://cozy-cabin-omega.vercel.app/auth/callback');
+
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -33,12 +35,17 @@ export const SignUpForm: React.FC = () => {
             full_name: data.fullName,
             role: 'customer'
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: 'https://cozy-cabin-omega.vercel.app/auth/callback'
         }
       });
 
       if (signUpError) {
-        console.error('Signup error details:', signUpError);
+        console.error('Signup error full details:', {
+          message: signUpError.message,
+          status: signUpError.status,
+          name: signUpError.name,
+          stack: signUpError.stack
+        });
         // Handle specific error cases
         if (signUpError.message.includes('User already registered')) {
           throw new Error('An account with this email already exists');
@@ -54,8 +61,25 @@ export const SignUpForm: React.FC = () => {
       navigate('/dashboard/customer');
       
     } catch (err) {
-      console.error('Signup error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during signup');
+      console.error('Signup error details:', {
+        error: err,
+        type: err instanceof Error ? 'Error' : typeof err,
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
+      });
+      
+      // More specific error messages
+      let errorMessage = 'An error occurred during signup';
+      if (err instanceof Error) {
+        if (err.message.includes('User already registered')) {
+          errorMessage = 'An account with this email already exists';
+        } else if (err.message.includes('Invalid email')) {
+          errorMessage = 'Please enter a valid email address';
+        } else if (err.message.includes('Password')) {
+          errorMessage = 'Password does not meet requirements';
+        }
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

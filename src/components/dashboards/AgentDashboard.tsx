@@ -62,7 +62,6 @@ export function AgentDashboard() {
     satisfaction_rate: 0,
   })
   const [activeTickets, setActiveTickets] = useState<ActiveTicket[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const { supabase } = useSupabase()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -73,7 +72,6 @@ export function AgentDashboard() {
    */
   const fetchDashboardData = async () => {
     try {
-      setIsLoading(true)
       const { data: agentStats, error: statsError } = await supabase
         .rpc('get_agent_performance_stats')
 
@@ -98,8 +96,6 @@ export function AgentDashboard() {
         description: 'Failed to load dashboard data. Please try again.',
         variant: 'destructive',
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 

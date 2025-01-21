@@ -4,12 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { FormInput } from '@/components/ui/form-input';
 import { signUpSchema, type SignUpFormData } from '@/lib/validations/auth';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
 export const SignUpForm: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   const {
     register,

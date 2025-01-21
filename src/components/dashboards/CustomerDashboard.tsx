@@ -60,7 +60,6 @@ export function CustomerDashboard() {
     pending: 0,
   })
   const [recentTickets, setRecentTickets] = useState<RecentTicket[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const { supabase } = useSupabase()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -71,7 +70,6 @@ export function CustomerDashboard() {
    */
   const fetchDashboardData = async () => {
     try {
-      setIsLoading(true)
       const { data: ticketStats, error: statsError } = await supabase
         .rpc('get_customer_ticket_stats')
 
@@ -94,8 +92,6 @@ export function CustomerDashboard() {
         description: 'Failed to load dashboard data. Please try again.',
         variant: 'destructive',
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 

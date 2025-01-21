@@ -26,6 +26,11 @@ export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -52,5 +57,5 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  return { user, isLoading };
+  return { user, isLoading, signOut };
 } 

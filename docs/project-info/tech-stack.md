@@ -1,4 +1,4 @@
-# AIDesk Technology Stack Choices
+# CozyCabin Technology Stack Choices
 
 ## Core Technologies
 

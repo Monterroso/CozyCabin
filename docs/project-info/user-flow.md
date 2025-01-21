@@ -1,12 +1,12 @@
-# AIDesk: User Flow Guide
+# CozyCabin: User Flow Guide
 
-This document outlines the user journey within the AIDesk application, covering each step from authentication to resolving and managing support tickets. It is designed to serve as a reference for how the application's features connect and flow together.
+This document outlines the user journey within the CozyCabin application, covering each step from authentication to resolving and managing support tickets. It is designed to serve as a reference for how the application's features connect and flow together.
 
 ## 1. Authentication & Onboarding
 
 1. **Landing Page**  
    - The user visits the main website or app landing page.  
-   - Users see high-level information about AIDesk (or are directly prompted to log in).
+   - Users see high-level information about CozyCabin (or are directly prompted to log in).
 
 2. **Sign Up / Log In**  
    - Users click "Sign Up" (create an account) or "Log In" (existing account).  
@@ -144,4 +144,4 @@ This document outlines the user journey within the AIDesk application, covering 
 - An **agent** logs in to see assigned tickets, uses AI suggestions to improve speed, and updates ticket statuses based on resolution.  
 - An **admin** monitors performance, manages organizational needs, and ensures the system flows smoothly across all channels and user roles.
 
-This user flow guide offers a high-level view of how different segments of AIDesk link together. It provides a foundation for interfacing and UI design, ensuring all features—from login to resolution—connect in a seamless, supportive journey. 
+This user flow guide offers a high-level view of how different segments of CozyCabin link together. It provides a foundation for interfacing and UI design, ensuring all features—from login to resolution—connect in a seamless, supportive journey. 

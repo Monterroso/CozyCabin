@@ -1,6 +1,6 @@
 # Tech Stack Options
 
-Below is a list of recommended technologies for the AIDesk project, inspired by the requirements from both the project overview and user flow documents. Each section highlights:
+Below is a list of recommended technologies for the CozyCabin project, inspired by the requirements from both the project overview and user flow documents. Each section highlights:
 1. An industry-standard option.
 2. A popular alternative.
 3. One or more other possibilities to consider.

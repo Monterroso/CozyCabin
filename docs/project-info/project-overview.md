@@ -1,9 +1,9 @@
-# AIDesk: Project Plan and Development Guide
+# CozyCabin: Project Plan and Development Guide
 
 ## 1. Project Purpose
 
 ### Overview
-AIDesk is a Zendesk clone designed to provide a modern and efficient customer support system. It will enable users to submit tickets via chat or email, allow agents to manage these tickets, and provide administrators with comprehensive oversight. The system will be built with a focus on scalability, reliability, and the integration of advanced AI features.
+CozyCabin is a Zendesk clone designed to provide a modern and efficient customer support system. It will enable users to submit tickets via chat or email, allow agents to manage these tickets, and provide administrators with comprehensive oversight. The system will be built with a focus on scalability, reliability, and the integration of advanced AI features.
 
 ### Key Objectives
 - **User Ticket Submission:** Allow users to submit tickets via chat and email.

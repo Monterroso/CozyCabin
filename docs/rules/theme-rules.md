@@ -1,6 +1,6 @@
 # Theme Rules (MountainLodge)
 
-This document outlines the styling choices for our chosen "MountainLodge" theme. It captures color palettes, typography, and core design principles used throughout AIDesk.
+This document outlines the styling choices for our chosen "MountainLodge" theme. It captures color palettes, typography, and core design principles used throughout CozyCabin.
 
 ## 1. Theme Overview
 
@@ -109,4 +109,4 @@ MountainLodge is designed to evoke warmth and natural calm, using earthy tones, 
 
 ## 8. Summary
 
-MountainLodge is our core theme designed to be cozy, approachable, and highly functional. By applying the outlined color palette, typography, and interaction styles, we ensure a user experience that is both visually pleasing and aligned with the AIDesk brand. Maintain consistent documentation and references to these rules to keep the UI clean, coherent, and easy to navigate. 
+MountainLodge is our core theme designed to be cozy, approachable, and highly functional. By applying the outlined color palette, typography, and interaction styles, we ensure a user experience that is both visually pleasing and aligned with the CozyCabin brand. Maintain consistent documentation and references to these rules to keep the UI clean, coherent, and easy to navigate. 

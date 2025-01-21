@@ -1,6 +1,6 @@
 # Phase 1: Project Setup & Basic Architecture
 
-This phase focuses on laying the groundwork for our AIDesk application, drawing on guidelines from:
+This phase focuses on laying the groundwork for our CozyCabin application, drawing on guidelines from:
 - @codebase-best-practices.md
 - @tech-stack.md
 - @tech-stack-rules.md
@@ -8,7 +8,7 @@ This phase focuses on laying the groundwork for our AIDesk application, drawing 
 ## Features & Tasks
 
 1. Codebase Initialization  
-   - [Frontend] Create a new repository or branch for the AIDesk project.  
+   - [Frontend] Create a new repository or branch for the CozyCabin project.  
    - [Frontend] Initialize the project with React, TypeScript, Tailwind CSS, and Shadcn UI.  
    - [Backend] Configure Supabase project (database, auth, storage).  
    - [Backend] Set up AWS Amplify hosting (if you want to deploy from the start).

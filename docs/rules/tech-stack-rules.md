@@ -1,4 +1,4 @@
-# AIDesk Technology Stack Rules & Best Practices
+# CozyCabin Technology Stack Rules & Best Practices
 
 ## TypeScript & General Coding Standards
 

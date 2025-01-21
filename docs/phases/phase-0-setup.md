@@ -8,7 +8,7 @@ A quick-start checklist to get the project up and running before diving into det
   - Example: install Yarn globally → npm install -g yarn
 
 ## 2. Repository & Basic Structure
-1. Create a new repository (e.g., "aidesk") or clone if already set up.
+1. Create a new repository (e.g., "CozyCabin") or clone if already set up.
 2. Initialize repository with a .gitignore to exclude /node_modules, /dist, environment files (.env), etc.
 3. Include documentation folders as shown in the recommended file tree (e.g., docs/, src/, etc.).
 
@@ -47,4 +47,4 @@ A quick-start checklist to get the project up and running before diving into det
 2. Verify that the local server launches without errors.
 
 ## Next Steps
-Once this environment is set, proceed to Phase 1 (see phase1-project-setup.md) to structure the codebase further and begin implementing AIDesk's core architecture. 
+Once this environment is set, proceed to Phase 1 (see phase1-project-setup.md) to structure the codebase further and begin implementing CozyCabin's core architecture. 

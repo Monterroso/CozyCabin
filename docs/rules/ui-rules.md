@@ -1,9 +1,9 @@
 # UI Rules
 
-These guidelines outline how we build and structure user interfaces in AIDesk, drawing from our user flow, technology stack, and best practices.
+These guidelines outline how we build and structure user interfaces in CozyCabin, drawing from our user flow, technology stack, and best practices.
 
 ## 1. Overview
-AIDesk prioritizes a responsive, accessible, and cohesive user experience. Our UIs must be easy to navigate, visually consistent, and performant. This document establishes the foundation for effective component design and interaction patterns.
+CozyCabin prioritizes a responsive, accessible, and cohesive user experience. Our UIs must be easy to navigate, visually consistent, and performant. This document establishes the foundation for effective component design and interaction patterns.
 
 ---
 
@@ -93,4 +93,4 @@ AIDesk prioritizes a responsive, accessible, and cohesive user experience. Our U
    - Integrate advanced E2E testing (Cypress) in a subsequent development phase.  
    - Expand on advanced search patterns using external services (e.g., Typesense) if needed.
 
-By applying these UI rules, we ensure that all AIDesk user journeys—from the customer portal to the admin console—remain consistent, discoverable, and efficient. 
+By applying these UI rules, we ensure that all CozyCabin user journeys—from the customer portal to the admin console—remain consistent, discoverable, and efficient. 

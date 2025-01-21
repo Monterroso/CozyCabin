@@ -6,13 +6,13 @@ This document consolidates essential guidelines from the following references:
 - [@ui-rules.md](../ui-rules.md)  
 - [@theme-rules.md](../theme-rules.md)
 
-It outlines how to organize and structure the AIDesk codebase to ensure scalability, clarity, and maintainability. It also includes a recommended folder structure with clear separation of concerns, along with notes on file naming and key style conventions.
+It outlines how to organize and structure the CozyCabin codebase to ensure scalability, clarity, and maintainability. It also includes a recommended folder structure with clear separation of concerns, along with notes on file naming and key style conventions.
 
 ---
 
 ## 1. Overview
 
-AIDesk is an AI-first project. Our goal is to create a codebase that is:
+CozyCabin is an AI-first project. Our goal is to create a codebase that is:
 - Modular and scalable, with an organized folder structure.  
 - Easy to navigate and read, particularly for AI-based tools.  
 - Strictly adhering to TypeScript & React best practices.  
@@ -152,6 +152,6 @@ Incorporate “MountainLodge” theme elements (see [theme-rules.md](../theme-ru
 
 ## 5. Conclusion
 
-These best practices unify coding, styling, state management, and design guidelines into one cohesive ecosystem. By following these standards, we ensure clean, maintainable, and AI-friendly code that remains consistent with the AIDesk brand and user experience goals.
+These best practices unify coding, styling, state management, and design guidelines into one cohesive ecosystem. By following these standards, we ensure clean, maintainable, and AI-friendly code that remains consistent with the CozyCabin brand and user experience goals.
 
 Keep this document updated as the project evolves and new requirements emerge. Well-structured, documented, and tested code will foster both fast iteration and long-term stability.

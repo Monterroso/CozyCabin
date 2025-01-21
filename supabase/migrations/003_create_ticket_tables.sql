@@ -1,3 +1,12 @@
+-- Create updated_at trigger function if it doesn't exist
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 -- Create the main tickets table
 CREATE TABLE tickets (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -173,4 +182,50 @@ CREATE POLICY "Agents can upload attachments"
       WHERE id = auth.uid()
       AND role IN ('agent', 'admin')
     )
-  ); 
+  );
+
+-- Create function for getting agent performance stats
+CREATE OR REPLACE FUNCTION get_agent_performance_stats()
+RETURNS TABLE (
+  assigned_tickets bigint,
+  resolved_today bigint,
+  average_response_time float,
+  satisfaction_rate float
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  agent_id uuid;
+BEGIN
+  agent_id := auth.uid();
+  
+  RETURN QUERY
+  WITH response_times AS (
+    SELECT
+      t.id,
+      MIN(c.created_at) - t.created_at as first_response_time
+    FROM tickets t
+    LEFT JOIN ticket_comments c ON c.ticket_id = t.id
+    WHERE t.assigned_to = agent_id
+    GROUP BY t.id, t.created_at
+  ),
+  satisfaction AS (
+    SELECT
+      COUNT(*) FILTER (WHERE status = 'solved') as solved_count,
+      COUNT(*) as total_count
+    FROM tickets
+    WHERE assigned_to = agent_id
+  )
+  SELECT
+    COUNT(*) FILTER (WHERE assigned_to = agent_id) as assigned_tickets,
+    COUNT(*) FILTER (WHERE status = 'solved' AND closed_at >= CURRENT_DATE) as resolved_today,
+    EXTRACT(epoch FROM AVG(first_response_time))/60 as average_response_time,
+    COALESCE(solved_count::float / NULLIF(total_count, 0), 0) as satisfaction_rate
+  FROM tickets
+  CROSS JOIN satisfaction
+  LEFT JOIN response_times ON response_times.id = tickets.id
+  WHERE assigned_to = agent_id;
+END;
+$$; 

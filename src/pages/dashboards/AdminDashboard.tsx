@@ -1,65 +1,146 @@
-import { Layout } from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Users, Ticket, Settings } from 'lucide-react';
+/**
+ * AdminDashboard.tsx
+ * Main dashboard view for administrators to oversee the entire support system
+ */
+
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
+import {
+  Users,
+  TicketIcon,
+  Clock,
+  TrendingUp,
+  UserPlus,
+  Settings2,
+} from 'lucide-react'
 
 export function AdminDashboard() {
+  const navigate = useNavigate()
+
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-6">
-        <h2 className="text-2xl font-bold text-lodge-brown mb-6">Admin Dashboard</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Team Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">Manage your support team members and their roles.</p>
-              <Button>Manage Team</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Ticket className="h-5 w-5" />
-                Ticket Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">Configure ticket categories, priorities, and routing rules.</p>
-              <Button>Configure</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                System Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">Manage system-wide settings and integrations.</p>
-              <Button>Settings</Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Analytics dashboard will be implemented in the next phase.</p>
-            </CardContent>
-          </Card>
-        </div>
+    <DashboardLayout>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-muted-foreground">System overview and management</p>
       </div>
-    </Layout>
-  );
+
+      {/* Quick Actions */}
+      <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Button
+          variant="outline"
+          className="h-20 justify-start gap-4"
+          onClick={() => navigate('/admin/users/new')}
+        >
+          <UserPlus className="h-5 w-5" />
+          <div className="text-left">
+            <div className="font-semibold">Add Agent</div>
+            <div className="text-xs text-muted-foreground">Create new support agent</div>
+          </div>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-20 justify-start gap-4"
+          onClick={() => navigate('/admin/settings')}
+        >
+          <Settings2 className="h-5 w-5" />
+          <div className="text-left">
+            <div className="font-semibold">Settings</div>
+            <div className="text-xs text-muted-foreground">Configure system</div>
+          </div>
+        </Button>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">1,234</div>
+            <p className="text-xs text-muted-foreground">+12 this week</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Tickets</CardTitle>
+            <TicketIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">42</div>
+            <p className="text-xs text-muted-foreground">15 unassigned</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Response Time</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">1.5h</div>
+            <p className="text-xs text-muted-foreground">Avg. first response</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Resolution Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">94%</div>
+            <p className="text-xs text-muted-foreground">+2% from last month</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Agent Performance */}
+      <div className="mt-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Agent Performance</h2>
+          <Button variant="outline" onClick={() => navigate('/admin/reports')}>
+            View Reports
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-8 w-8 rounded-full bg-muted" />
+                  <div>
+                    <h3 className="font-medium">Sarah Johnson</h3>
+                    <p className="text-sm text-muted-foreground">32 tickets resolved this week</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">98% satisfaction</p>
+                  <p className="text-sm text-muted-foreground">1.2h avg. response</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-8 w-8 rounded-full bg-muted" />
+                  <div>
+                    <h3 className="font-medium">Michael Chen</h3>
+                    <p className="text-sm text-muted-foreground">28 tickets resolved this week</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">96% satisfaction</p>
+                  <p className="text-sm text-muted-foreground">1.5h avg. response</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  )
 } 

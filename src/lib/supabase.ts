@@ -5,6 +5,7 @@
  * Uses environment variables for configuration.
  */
 
+import { createContext } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
 
@@ -40,4 +41,10 @@ export const getCurrentUser = async () => {
 export const getCurrentSession = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   return session;
-}; 
+};
+
+type SupabaseContextType = {
+  supabase: typeof supabase
+}
+
+export const SupabaseContext = createContext<SupabaseContextType>({ supabase }) 

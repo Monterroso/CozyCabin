@@ -2,7 +2,8 @@
 
 import { Layout } from '../../components/layout/Layout';
 import { SignUpForm } from '../../components/auth/sign-up-form';
-export async function SignUpPage() {
+
+export function SignUpPage() {
   return (
     <Layout>
       <div className="max-w-md mx-auto mt-8">

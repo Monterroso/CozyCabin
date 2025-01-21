@@ -1,80 +1,91 @@
 # Backend Workflow
 
 ## Project State
-Project Phase: [Phase Number/Name]
+Project Phase: Phase 2 - User Authentication & Data Model
 Backend-Focused
 
 ## Task Management
-- [ ] Identify current backend tasks from docs/living/checklists or relevant phase file
-- [ ] Copy task details to "Primary Feature" section
-- [ ] Break down into "Component Features" if needed
+- [x] Identify current backend tasks from docs/living/checklists or relevant phase file
+- [x] Copy task details to "Primary Feature" section
+- [x] Break down into "Component Features" if needed
 
 ---
 
 ## Primary Feature
-Name: [Feature Name]
-Description: [Feature Description]
+Name: User Authentication and Data Schema
+Description: Set up Supabase authentication, user roles, and initial ticket schema
 
 ### Component Features
-- [ ] [Component Feature Name]
-  - [ ] [Backend Task 1]
-  - [ ] [Backend Task 2]
+- [x] Basic Auth Setup
+  - [x] Configure Supabase client
+  - [x] Set up auth state management
+  - [x] Create auth helper functions
+- [x] User Role Management
+  - [x] Create profiles table
+  - [x] Add role constraints and defaults
+  - [x] Implement role-based RLS
+  - [x] Add email tracking
+  - [x] Set up profile triggers
+- [ ] Ticket Schema
+  - [ ] Create tickets table
+  - [ ] Create ticket_metadata table
+  - [ ] Set up foreign key relationships
+  - [ ] Add timestamps and defaults
+  - [ ] Implement ticket RLS policies
 
 ---
 
 ## Progress Checklist
 
 ### Understanding Phase
-- [ ] Documentation Review
-    - [ ] Tech stack guidelines (`tech-stack.md`, `tech-stack-rules.md`)
-    - [ ] Existing services and utils (`services.ts`, `database.ts`, `feature/*/utils`)
-    - [ ] Data models (`lib/types`)
-    - [ ] Integration points (endpoints, auth boundaries)
+- [x] Documentation Review
+    - [x] Tech stack guidelines (`tech-stack.md`)
+    - [x] Existing services and utils (`supabase.ts`)
+    - [x] Data models (`lib/types`)
+    - [x] Integration points (endpoints, auth boundaries)
     - [ ] Real-time features (presence, typing, notifications)
-- Notes: [ Notes ]
+- Notes: User profile schema and auth integration complete
 
 ### Planning Phase
-- [ ] Architecture
-    - [ ] Data flow and relationships
-    - [ ] API/route handler structure
-    - [ ] Type definitions and Zod schemas
-    - [ ] Real-time requirements
-    - [ ] Test specifications (per `test-rules.md`)
-    - [ ] PAUSE, Check in with user
-- Notes: [ Notes ]
+- [x] Architecture
+    - [x] Data flow and relationships
+    - [x] Auth integration strategy
+    - [x] Database schema design
+    - [x] RLS policy design
+    - [ ] Test specifications
+    - [x] PAUSE, Check in with user
+- Notes: User profiles and roles implemented, ready for ticket schema
 
 ### Implementation Phase
-- [ ] Setup
-    - [ ] Verify data types and shapes
-    - [ ] Confirm UI integration points
-    - [ ] Review file structure requirements
-- Notes: [ Notes ]
+- [x] Setup
+    - [x] Configure Supabase client
+    - [x] Set up auth listeners
+    - [x] Design database schema
+- Notes: User profile schema implemented and working
 
-- [ ] Development
-    - [ ] Create route handlers/server actions
-    - [ ] Implement database integration
-    - [ ] Add business logic
-    - [ ] Implement data validation
-    - [ ] Add real-time features if needed
-    - [ ] Write and maintain tests
-- Notes: [ Notes ]
+- [x] Development
+    - [x] Configure auth providers
+    - [x] Create database migrations
+    - [x] Implement RLS policies
+    - [x] Set up role management
+    - [ ] Create ticket tables
+- Notes: User authentication and roles complete, moving to ticket schema
 
 - [ ] Integration
-    - [ ] Connect with UI components
-    - [ ] Document API endpoints
-    - [ ] Configure state management
-- Notes: [ Notes ]
+    - [x] Connect auth with UI
+    - [x] Test role-based access
+    - [ ] Validate ticket schema
+- Notes: Auth and roles working with UI components
 
 ### Verification Phase
 - [ ] Quality Check
-    - [ ] Feature completeness
-    - [ ] Error handling
-    - [ ] Performance and security
-    - [ ] Code organization
-    - [ ] Type safety
+    - [x] Auth security
+    - [x] RLS effectiveness
+    - [x] Data integrity
+    - [x] Type safety
     - [ ] Test coverage
     - [ ] Documentation
-- Notes: [ Notes ]
+- Notes: User authentication and roles verified working
 
 ### Completion
 - [ ] User sign-off
@@ -82,5 +93,9 @@ Description: [Feature Description]
 
 ## Notes
 Key decisions and learnings:
-1. [ ]
-2. [ ]
+1. [x] Implemented Supabase client with proper TypeScript support
+2. [x] Set up auth state management with hooks
+3. [x] Created user profiles table with role management
+4. [x] Implemented RLS policies for profile access
+5. [x] Added email tracking to profiles
+6. [ ] Need to implement ticket schema next

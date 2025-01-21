@@ -1,4 +1,4 @@
-export const colors = {
+const colors = {
   // Primary colors
   'lodge-brown': {
     DEFAULT: '#6B4E3E',
@@ -39,6 +39,9 @@ export const colors = {
     800: '#775A38',
     900: '#554028',
   },
-} as const;
+};
 
-export type ColorName = keyof typeof colors; 
+/** @type {keyof typeof colors} */
+type ColorName = keyof typeof colors;
+
+module.exports = { colors }; 

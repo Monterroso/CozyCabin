@@ -6,7 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from './types/supabase'
+import { Database } from '@/types/supabase'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -22,6 +22,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true
   }
 })
+
+// Export auth and other commonly used features for convenience
+export const auth = supabase.auth
 
 // Export typed helpers
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']

@@ -1,7 +1,8 @@
+'use client'
+
 import { Layout } from '../../components/layout/Layout';
 import { SignUpForm } from '../../components/auth/sign-up-form';
-
-export function SignUpPage() {
+export async function SignUpPage() {
   return (
     <Layout>
       <div className="max-w-md mx-auto mt-8">

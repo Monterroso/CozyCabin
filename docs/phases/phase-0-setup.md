@@ -2,10 +2,9 @@
 
 A quick-start checklist to get the project up and running before diving into detailed phases.
 
-## 1. Node & Yarn/NPM Setup
+## 1. Node & Yarn Setup
 - Install the latest LTS version of Node.js (e.g., 16.x or 18.x).
-- Decide on a package manager: Yarn or npm.  
-  - Example: install Yarn globally → npm install -g yarn
+- Decide on a package manager: Yarn.  
 
 ## 2. Repository & Basic Structure
 1. Create a new repository (e.g., "CozyCabin") or clone if already set up.
@@ -15,8 +14,6 @@ A quick-start checklist to get the project up and running before diving into det
 ## 3. Installing Dependencies
 1. From the repository root, run:
    - yarn install  
-     or  
-   - npm install  
 2. Confirm dependencies (e.g., React, Tailwind, shadcn components, Zustand, React Hook Form, Zod), as specified in the package.json.
 
 ## 4. Dev Tools & Linters
@@ -42,8 +39,6 @@ A quick-start checklist to get the project up and running before diving into det
 ## 8. Running the Dev Server
 1. Start the project in development mode:
    - yarn dev  
-     or  
-   - npm run dev  
 2. Verify that the local server launches without errors.
 
 ## Next Steps

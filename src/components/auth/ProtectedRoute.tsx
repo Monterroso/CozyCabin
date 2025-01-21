@@ -1,10 +1,11 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
+import type { UserRole } from '@/lib/types/supabase';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'customer' | 'agent' | 'admin';
+  requiredRole?: UserRole;
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {

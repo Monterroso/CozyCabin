@@ -1,17 +1,18 @@
-import { useState } from 'react'
+import { Layout } from './components/layout/Layout';
 
 function App() {
   return (
-    <div className="min-h-screen bg-cabin-cream">
-      <header className="bg-lodge-brown text-white p-4">
-        <h1 className="text-2xl font-bold">CozyCabin</h1>
-      </header>
-      <main className="container mx-auto p-4">
-        <h2 className="text-xl font-semibold text-pine-green">Welcome to CozyCabin</h2>
-        <p className="mt-4 text-gray-700">Your modern customer support system.</p>
-      </main>
-    </div>
-  )
+    <Layout>
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-lodge-brown mb-4">
+          Welcome to CozyCabin
+        </h2>
+        <p className="text-pine-green-700">
+          Your modern customer support solution
+        </p>
+      </div>
+    </Layout>
+  );
 }
 
-export default App 
+export default App; 

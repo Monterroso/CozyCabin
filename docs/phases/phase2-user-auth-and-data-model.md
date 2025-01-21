@@ -1,0 +1,15 @@
+# Phase 2: User Authentication & Core Data Model
+
+[ ] FRONTEND: Install Supabase client and create an Auth UI flow (sign up, login, password reset) [~1 day]  
+[ ] FRONTEND: Use React Hook Form + Zod for registration and login pages [~1 day]  
+[ ] BACKEND: Enable required auth providers in Supabase (email, social if needed) [~0.5 hour]  
+[ ] BACKEND: Enforce RLS on user-related tables for proper security/role-based access [~1 day]  
+[ ] FRONTEND: Implement role handling (Customer, Agent, Admin) and route users accordingly [~1 day]  
+[ ] BACKEND: Extend user or profile table to store roles in Supabase [~0.5 day]  
+[ ] BACKEND: Ensure roles sync or store properly (DB constraints, RLS) [~1 day]  
+[ ] FRONTEND: Prepare ticket-related UI for future expansions (forms, validations) [~1 day]  
+[ ] BACKEND: Create initial ticket tables in Supabase (tickets, ticket_metadata, etc.) [~1 day]  
+[ ] BACKEND: Add constraints (foreign keys, timestamps, default values) [~0.5 day]  
+[ ] FRONTEND: Ensure only authenticated routes are accessible post-login [~0.5 day]  
+[ ] FRONTEND: Provide placeholder dashboards for different roles [~0.5 day]  
+[ ] FRONTEND/BACKEND: Write basic tests verifying user registration, login, and role-based routing [~1 day]

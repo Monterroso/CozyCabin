@@ -1,0 +1,18 @@
+# Phase 3: Ticket Management Basics
+
+[ ] FRONTEND: Build a "New Ticket" form using React Hook Form + Zod (subject/description/priority) [~1 day]  
+[ ] FRONTEND: Style form using Tailwind + shadcn components [~0.5 day]  
+[ ] BACKEND: Secure Supabase insert logic so only authenticated customers can create tickets [~1 day]  
+[ ] BACKEND: Store ticket fields (ID, user ID, timestamps, status, priority) [~0.5 day]  
+[ ] FRONTEND: Display a list of tickets for the logged-in customer [~1 day]  
+[ ] FRONTEND: Implement a ticket detail page showing conversation history/notes [~1 day]  
+[ ] BACKEND: Provide a query or endpoint returning all tickets for a specific user [~0.5 day]  
+[ ] BACKEND: Ensure ticket detail fetch includes necessary data (status, timestamps) [~0.5 day]  
+[ ] FRONTEND: Create an Agent Dashboard with open or assigned tickets [~1 day]  
+[ ] FRONTEND: Provide sorting/filtering by status or priority [~0.5 day]  
+[ ] BACKEND: Add agent-focused read endpoints for open/assigned tickets [~1 day]  
+[ ] FRONTEND: Allow agents to change ticket status (In Progress, Solved) [~0.5 day]  
+[ ] FRONTEND: Add forms for internal notes or replies [~0.5 day]  
+[ ] BACKEND: Validate only agents can update certain ticket fields (RLS or role checks) [~1 day]  
+[ ] FRONTEND: Use color-coded statuses based on priority following MountainLodge theme [~0.5 day]  
+[ ] FRONTEND/BACKEND: Test ticket creation, listing, and role-based updates thoroughly [~1 day]

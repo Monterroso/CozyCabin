@@ -1,0 +1,17 @@
+# Phase 6: AI Integration & Knowledge Management
+
+[ ] FRONTEND: Add AI-suggested replies toggle in the agent interface [~1 day]  
+[ ] FRONTEND: Clearly label AI-generated suggestions vs. manual replies [~0.5 day]  
+[ ] BACKEND: Create an AWS Lambda function to handle OpenAI API calls (keys in .env only) [~2 days]  
+[ ] BACKEND: Validate request payloads to avoid sending sensitive data to AI [~1 day]  
+[ ] FRONTEND: Add a knowledge base UI to view or edit relevant docs [~1 day]  
+[ ] FRONTEND: Implement a "fetch AI suggestions" feature that references knowledge docs [~1 day]  
+[ ] BACKEND: Develop a knowledge base schema in Supabase [~1 day]  
+[ ] BACKEND: Use RAG approach (Retrieve, Augment, Generate) in the Lambda function to find relevant docs [~2 days]  
+[ ] FRONTEND: Let admins enable/disable AI-based ticket classification [~0.5 day]  
+[ ] BACKEND: Extend or create a function to classify tickets by category/priority [~1 day]  
+[ ] BACKEND: Integrate classification output into existing routing rules [~1 day]  
+[ ] FRONTEND: Show AI-generated summaries for Admin dashboards [~1 day]  
+[ ] BACKEND: Query ticket data and generate short summaries via AI [~1 day]  
+[ ] BACKEND: Implement caching or rate-limiting to manage OpenAI costs [~1 day]  
+[ ] FRONTEND/BACKEND: Test AI features (fallback if AI fails, correct classification/routing) [~2 days]

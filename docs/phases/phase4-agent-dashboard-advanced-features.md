@@ -1,0 +1,17 @@
+# Phase 4: Advanced Agent Dashboard Features
+
+[ ] FRONTEND: Implement real-time Supabase subscriptions for instant ticket updates [~1 day]  
+[ ] FRONTEND: Show in-app notifications for ticket status changes or new notes [~1 day]  
+[ ] BACKEND: Set up Supabase channels for relevant data changes (tickets, notes) [~1 day]  
+[ ] BACKEND: (Optional) Add real-time presence to indicate agent availability [~1 day]  
+[ ] FRONTEND: Enable bulk selection of tickets for batch status updates or assignments [~1 day]  
+[ ] FRONTEND: Provide advanced filtering (by tag, priority, date range) [~1 day]  
+[ ] BACKEND: Extend queries/endpoints to handle multi-update requests and filters [~1 day]  
+[ ] BACKEND: Validate authorized agents only can perform bulk updates [~0.5 day]  
+[ ] FRONTEND: Add an internal notes section in ticket detail view (visible only to agents) [~1 day]  
+[ ] FRONTEND: Implement file attachments via Supabase Storage [~0.5 day]  
+[ ] BACKEND: Create or modify DB tables for storing internal notes, attachments metadata [~1 day]  
+[ ] BACKEND: Enforce file type/size constraints per security rules [~0.5 day]  
+[ ] FRONTEND: Optimize re-renders using React.memo or useMemo, explaining reasoning [~1 day]  
+[ ] BACKEND: Review subscription footprints to ensure performance (indexes, table design) [~1 day]  
+[ ] FRONTEND/BACKEND: Write unit and integration tests covering real-time updates, bulk ops, attachments [~1-2 days total]

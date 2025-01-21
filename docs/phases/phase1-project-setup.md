@@ -1,0 +1,16 @@
+# Phase 1: Project Setup & Basic Architecture
+
+[ ] FRONTEND: Initialize or confirm the React + TypeScript + Tailwind + Shadcn UI setup [~1 day]  
+[ ] FRONTEND: Create essential folders (components, hooks, stores, pages, utils, theme) [~2 hours]  
+[ ] BACKEND: Configure Supabase project (DB, auth, storage) [~1 day]  
+[ ] BACKEND: (Optional) Set up AWS Amplify hosting [~2 hours]  
+[ ] FRONTEND: Implement a scalable folder structure following best practices [~2 hours]  
+[ ] BACKEND: Prepare Supabase settings (roles, RLS considerations) without exposing keys [~2 hours]  
+[ ] BACKEND: Integrate environment configs in AWS Amplify (no secrets committed) [~2 hours]  
+[ ] FRONTEND: Configure Tailwind with "MountainLodge" theme colors and ensure shadcn setup [~2 hours]  
+[ ] FRONTEND: Add ESLint, Prettier, or other linters/formatters and scripts in package.json [~1 hour]  
+[ ] BACKEND: Set up or confirm any serverless/Amplify-specific build scripts [~1 hour]  
+[ ] FRONTEND: Update README with build/run instructions [~1 hour]  
+[ ] FRONTEND: Establish commit message style (e.g., Conventional Commits) [~0.5 hour]  
+[ ] BACKEND: Document required environment variables in a safe manner (never in repo) [~1 hour]  
+[ ] BACKEND: Verify environment configs are in .gitignore [~0.5 hour]

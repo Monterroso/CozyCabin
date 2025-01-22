@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormInput } from '@/components/ui/form-input';
 import { signUpSchema, type SignUpFormData } from '@/lib/validations/auth';
 import { supabase } from '@/lib/supabase';
+import { getBaseUrl } from '@/lib/utils';
 
 export const SignUpForm: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +26,8 @@ export const SignUpForm: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      console.log('Attempting signup with redirect:', 'https://cozy-cabin-omega.vercel.app/auth/callback');
+      const redirectUrl = `${getBaseUrl()}/auth/callback`;
+      console.log('Attempting signup with redirect:', redirectUrl);
 
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
@@ -35,7 +37,7 @@ export const SignUpForm: React.FC = () => {
             full_name: data.fullName,
             role: 'customer'
           },
-          emailRedirectTo: 'https://cozy-cabin-omega.vercel.app/auth/callback'
+          emailRedirectTo: redirectUrl
         }
       });
 

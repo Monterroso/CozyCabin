@@ -51,19 +51,8 @@ export function LoginForm() {
         throw new Error('Failed to sign in');
       }
 
-      // Get user profile to determine role
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single();
-
-      // Redirect to appropriate dashboard based on role
-      if (profile?.role) {
-        navigate(`/dashboard/${profile.role}`);
-      } else {
-        navigate('/dashboard/customer'); // Default to customer dashboard
-      }
+      // Navigate to root, let auth guard handle routing
+      navigate('/', { replace: true });
       
     } catch (err) {
       console.error('Login error:', err);

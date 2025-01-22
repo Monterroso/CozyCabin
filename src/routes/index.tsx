@@ -1,16 +1,46 @@
-import { createBrowserRouter } from "react-router-dom";
-import { adminRoutes } from "./admin";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import type { UserRole } from "@/lib/types/supabase";
+/**
+ * index.tsx
+ * Main routing configuration combining all route segments
+ */
 
-export const router = createBrowserRouter([
-  {
-    path: "/admin",
-    element: (
-      <ProtectedRoute allowedRoles={['admin'] as UserRole[]}>
-        {adminRoutes}
-      </ProtectedRoute>
-    ),
-  },
-  // Add other routes here
-]); 
+import { createElement } from "react";
+import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
+import { routes } from "./config";
+import { createRouteConfig } from "./utils";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import type { AppRoute } from "./config";
+
+// Convert our AppRoute type to React Router's RouteObject type
+function convertToRouteObject(route: AppRoute): RouteObject {
+  const routeObject: RouteObject = {
+    path: route.path,
+    element: createElement(route.element),
+    errorElement: route.errorElement ? createElement(route.errorElement) : <ErrorBoundary />,
+  };
+
+  if (route.children) {
+    routeObject.children = route.children.map(convertToRouteObject);
+  }
+
+  return routeObject;
+}
+
+// Process the routes with our configuration utility
+const processedRoutes = createRouteConfig(routes).map(route => {
+  // Special handling for admin routes to inject the layout
+  if (route.path === "/admin") {
+    return {
+      ...convertToRouteObject(route),
+      element: <AdminLayout />,
+    };
+  }
+
+  return convertToRouteObject(route);
+});
+
+const router = createBrowserRouter(processedRoutes);
+
+export function AppRoutes() {
+  return <RouterProvider router={router} />;
+}

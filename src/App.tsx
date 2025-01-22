@@ -1,22 +1,20 @@
 /**
  * App.tsx
- * Root application component with providers and routing
+ * Main application component with routing setup.
  */
 
-import { BrowserRouter } from 'react-router-dom'
-import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
-import { Toaster } from '@/components/ui/toaster'
-import { AppRoutes } from '@/routes'
+import { SupabaseProvider } from '@/components/providers/SupabaseProvider';
+import { UserProvider } from '@/contexts/UserContext';
+import { Toaster } from '@/components/ui/toaster';
+import { AppRoutes } from '@/routes/index';
 
-export function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <SupabaseProvider>
+    <SupabaseProvider>
+      <UserProvider>
         <AppRoutes />
         <Toaster />
-      </SupabaseProvider>
-    </BrowserRouter>
-  )
-}
-
-export default App; 
+      </UserProvider>
+    </SupabaseProvider>
+  );
+} 

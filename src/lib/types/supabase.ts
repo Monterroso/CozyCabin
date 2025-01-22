@@ -14,8 +14,8 @@ export type Json =
   | Json[]
 
 export type UserRole = 'customer' | 'agent' | 'admin';
-export type TicketStatus = 'open' | 'in_progress' | 'pending' | 'on_hold' | 'solved' | 'closed';
-export type TicketPriority = 'urgent' | 'high' | 'normal' | 'low';
+export type TicketStatus = 'open' | 'in_progress' | 'pending' | 'solved' | 'closed';
+export type TicketPriority = 'normal' | 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Database {
   public: {
@@ -52,42 +52,45 @@ export interface Database {
       tickets: {
         Row: {
           id: string;
-          title: string;
+          subject: string;
           description: string;
           status: TicketStatus;
           priority: TicketPriority;
-          customer_id: string;
-          assigned_agent_id: string | null;
+          created_by: string;
+          assigned_to: string | null;
           created_at: string;
           updated_at: string;
+          closed_at: string | null;
           tags: string[];
-          custom_fields: Json;
+          metadata: Json;
         };
         Insert: {
           id?: string;
-          title: string;
+          subject: string;
           description: string;
           status?: TicketStatus;
           priority?: TicketPriority;
-          customer_id: string;
-          assigned_agent_id?: string | null;
+          created_by: string;
+          assigned_to?: string | null;
           created_at?: string;
           updated_at?: string;
+          closed_at?: string | null;
           tags?: string[];
-          custom_fields?: Json;
+          metadata?: Json;
         };
         Update: {
           id?: string;
-          title?: string;
+          subject?: string;
           description?: string;
           status?: TicketStatus;
           priority?: TicketPriority;
-          customer_id?: string;
-          assigned_agent_id?: string | null;
+          created_by?: string;
+          assigned_to?: string | null;
           created_at?: string;
           updated_at?: string;
+          closed_at?: string | null;
           tags?: string[];
-          custom_fields?: Json;
+          metadata?: Json;
         };
       };
       ticket_comments: {
@@ -99,7 +102,6 @@ export interface Database {
           is_internal: boolean;
           created_at: string;
           updated_at: string;
-          attachments: string[];
         };
         Insert: {
           id?: string;
@@ -109,7 +111,6 @@ export interface Database {
           is_internal?: boolean;
           created_at?: string;
           updated_at?: string;
-          attachments?: string[];
         };
         Update: {
           id?: string;
@@ -119,7 +120,41 @@ export interface Database {
           is_internal?: boolean;
           created_at?: string;
           updated_at?: string;
-          attachments?: string[];
+        };
+      };
+      ticket_attachments: {
+        Row: {
+          id: string;
+          ticket_id: string;
+          comment_id: string | null;
+          file_name: string;
+          file_type: string;
+          file_size: number;
+          storage_path: string;
+          uploaded_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          ticket_id: string;
+          comment_id?: string | null;
+          file_name: string;
+          file_type: string;
+          file_size: number;
+          storage_path: string;
+          uploaded_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          ticket_id?: string;
+          comment_id?: string | null;
+          file_name?: string;
+          file_type?: string;
+          file_size?: number;
+          storage_path?: string;
+          uploaded_by?: string;
+          created_at?: string;
         };
       };
     };
@@ -127,7 +162,15 @@ export interface Database {
       [_ in never]: never
     };
     Functions: {
-      [_ in never]: never
+      get_agent_performance_stats: {
+        Args: Record<string, never>;
+        Returns: {
+          assigned_tickets: number;
+          resolved_today: number;
+          average_response_time: number;
+          satisfaction_rate: number;
+        }[];
+      };
     };
     Enums: {
       user_role: UserRole;

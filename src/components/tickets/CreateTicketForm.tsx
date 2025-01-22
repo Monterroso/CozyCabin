@@ -21,10 +21,11 @@
  */
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
-import { createTicketSchema, type CreateTicketInput } from '@/lib/schemas/ticket'
+import { z } from 'zod'
+import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -33,7 +34,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -44,10 +44,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useToast } from '@/components/ui/use-toast'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ticketPriorities } from '@/lib/schemas/ticket'
-import { useSupabase } from '@/hooks/useSupabase'
+import { useTicketStore } from '@/stores/ticketStore'
+import { TicketPriority } from '@/types/tickets'
+
+const createTicketSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters'),
+  description: z.string().min(20, 'Description must be at least 20 characters'),
+  priority: z.enum(['low', 'medium', 'high'] as const),
+})
+
+type CreateTicketForm = z.infer<typeof createTicketSchema>
 
 /**
  * CreateTicketForm Component
@@ -60,49 +66,30 @@ import { useSupabase } from '@/hooks/useSupabase'
  * @returns {JSX.Element} A form component for creating tickets
  */
 export function CreateTicketForm() {
-  // State for managing form submission
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { supabase } = useSupabase()
-  const { toast } = useToast()
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const { createTicket } = useTicketStore()
 
-  // Initialize form with Zod validation
-  const form = useForm<CreateTicketInput>({
+  const form = useForm<CreateTicketForm>({
     resolver: zodResolver(createTicketSchema),
     defaultValues: {
-      subject: '',
+      title: '',
       description: '',
-      priority: 'normal',
-      tags: [],
+      priority: 'low',
     },
   })
 
-  /**
-   * Handles form submission
-   * Creates a new ticket in Supabase and shows success/error notifications
-   * 
-   * @param {CreateTicketInput} data - The validated form data
-   */
-  const onSubmit = async (data: CreateTicketInput) => {
+  const onSubmit = async (data: CreateTicketForm) => {
     try {
       setIsSubmitting(true)
-
-      const { error } = await supabase
-        .from('tickets')
-        .insert([data])
-        .select()
-        .single()
-
-      if (error) throw error
-
+      await createTicket(data)
       toast({
-        title: 'Ticket Created',
-        description: 'Your support ticket has been submitted successfully.',
+        title: 'Success',
+        description: 'Your ticket has been created successfully.',
       })
-
       navigate('/tickets')
     } catch (error) {
-      console.error('Error creating ticket:', error)
       toast({
         title: 'Error',
         description: 'Failed to create ticket. Please try again.',
@@ -114,124 +101,77 @@ export function CreateTicketForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create Support Ticket</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form 
-            onSubmit={form.handleSubmit(onSubmit)} 
-            className="space-y-6"
-            aria-label="Create support ticket form"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Brief summary of your issue" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Detailed description of your issue"
+                  className="min-h-[120px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="priority"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Priority</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority level" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/tickets')}
+            disabled={isSubmitting}
           >
-            {/* Subject Field */}
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject</FormLabel>
-                  <FormDescription>
-                    Briefly describe your issue in a few words
-                  </FormDescription>
-                  <FormControl>
-                    <Input 
-                      placeholder="Brief description of the issue" 
-                      {...field}
-                      aria-describedby="subject-description"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Description Field */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormDescription>
-                    Provide detailed information about your issue
-                  </FormDescription>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Detailed explanation of your issue..."
-                      className="min-h-[120px]"
-                      {...field}
-                      aria-describedby="description-description"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Priority Selection */}
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Priority</FormLabel>
-                  <FormDescription>
-                    Select the urgency level of your issue
-                  </FormDescription>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                    aria-describedby="priority-description"
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ticketPriorities.map((priority) => (
-                        <SelectItem 
-                          key={priority} 
-                          value={priority} 
-                          className="capitalize"
-                        >
-                          {priority}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Form Actions */}
-            <div 
-              className="flex justify-end gap-4"
-              role="group"
-              aria-label="Form submission"
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/tickets')}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                aria-busy={isSubmitting}
-              >
-                {isSubmitting ? 'Creating...' : 'Create Ticket'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating...' : 'Create Ticket'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 } 

@@ -1,80 +1,78 @@
-export type Database = {
+import { TicketStatus, TicketPriority } from './tickets'
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Database {
   public: {
     Tables: {
+      tickets: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          title: string
+          description: string
+          status: TicketStatus
+          priority: TicketPriority
+          user_id: string
+          agent_id: string | null
+          internal_notes: string[] | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          title: string
+          description: string
+          status: TicketStatus
+          priority: TicketPriority
+          user_id: string
+          agent_id?: string | null
+          internal_notes?: string[] | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          title?: string
+          description?: string
+          status?: TicketStatus
+          priority?: TicketPriority
+          user_id?: string
+          agent_id?: string | null
+          internal_notes?: string[] | null
+        }
+      }
       profiles: {
         Row: {
           id: string
           created_at: string
           updated_at: string
-          full_name: string | null
-          avatar_url: string | null
-          role: 'customer' | 'agent' | 'admin'
-          is_active: boolean
           email: string
+          name: string
+          role: 'admin' | 'agent' | 'customer'
         }
         Insert: {
           id: string
           created_at?: string
           updated_at?: string
-          full_name?: string | null
-          avatar_url?: string | null
-          role?: 'customer' | 'agent' | 'admin'
-          is_active?: boolean
           email: string
+          name: string
+          role: 'admin' | 'agent' | 'customer'
         }
         Update: {
           id?: string
           created_at?: string
           updated_at?: string
-          full_name?: string | null
-          avatar_url?: string | null
-          role?: 'customer' | 'agent' | 'admin'
-          is_active?: boolean
           email?: string
-        }
-      }
-      tickets: {
-        Row: {
-          id: string
-          subject: string
-          description: string
-          status: 'open' | 'in_progress' | 'pending' | 'on_hold' | 'solved' | 'closed'
-          priority: 'urgent' | 'high' | 'normal' | 'low'
-          created_by: string
-          assigned_to: string | null
-          created_at: string
-          updated_at: string
-          closed_at: string | null
-          tags: string[]
-          metadata: Record<string, any>
-        }
-        Insert: {
-          id?: string
-          subject: string
-          description: string
-          status?: 'open' | 'in_progress' | 'pending' | 'on_hold' | 'solved' | 'closed'
-          priority?: 'urgent' | 'high' | 'normal' | 'low'
-          created_by: string
-          assigned_to?: string | null
-          created_at?: string
-          updated_at?: string
-          closed_at?: string | null
-          tags?: string[]
-          metadata?: Record<string, any>
-        }
-        Update: {
-          id?: string
-          subject?: string
-          description?: string
-          status?: 'open' | 'in_progress' | 'pending' | 'on_hold' | 'solved' | 'closed'
-          priority?: 'urgent' | 'high' | 'normal' | 'low'
-          created_by?: string
-          assigned_to?: string | null
-          created_at?: string
-          updated_at?: string
-          closed_at?: string | null
-          tags?: string[]
-          metadata?: Record<string, any>
+          name?: string
+          role?: 'admin' | 'agent' | 'customer'
         }
       }
       ticket_comments: {
@@ -149,9 +147,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      user_role: 'customer' | 'agent' | 'admin'
-      ticket_status: 'open' | 'in_progress' | 'pending' | 'on_hold' | 'solved' | 'closed'
-      ticket_priority: 'urgent' | 'high' | 'normal' | 'low'
+      [_ in never]: never
     }
   }
 } 

@@ -25,10 +25,10 @@ export const FormInput = <T extends FieldValues>({
     <div className="space-y-2">
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+        className="block text-sm font-medium text-foreground dark:text-foreground"
       >
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="text-ember-orange ml-1">*</span>}
       </label>
       <input
         id={id}
@@ -36,14 +36,14 @@ export const FormInput = <T extends FieldValues>({
         placeholder={placeholder}
         {...register(id)}
         disabled={disabled}
-        className={`block w-full rounded-md border ${
+        className={`block w-full rounded-md ${
           errors[id]
-            ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-            : 'border-gray-300 focus:border-primary focus:ring-primary'
-        } p-2.5 text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 disabled:cursor-not-allowed disabled:opacity-50`}
+            ? 'border-ember-orange focus:border-ember-orange focus:ring-ember-orange'
+            : 'border-input focus:border-pine-green focus:ring-pine-green'
+        } p-2.5 text-foreground shadow-sm dark:border-input dark:bg-background dark:text-foreground dark:placeholder-muted-foreground disabled:cursor-not-allowed disabled:opacity-50`}
       />
       {errors[id] && (
-        <p className="mt-1 text-sm text-red-500">
+        <p className="mt-1 text-sm text-ember-orange">
           {errors[id]?.message as string}
         </p>
       )}

@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { UserRole } from "@/lib/types/supabase";
 import { Layout } from "@/components/layout/Layout";
+import { PublicRoute } from "@/components/auth/PublicRoute";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -49,22 +50,24 @@ export default function SignUpPage() {
   }, [searchParams, toast, navigate]);
 
   return (
-    <Layout>
-      <div className="flex items-center justify-center py-10">
-        <div className="container max-w-lg">
-          <Card className="w-full p-8 shadow-lg bg-white">
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold text-lodge-brown">Create an account</h1>
-              {inviteData && (
-                <p className="mt-2 text-pine-green-600">
-                  You've been invited to join as a {inviteData.role}.
-                </p>
-              )}
-            </div>
-            <SignUpForm inviteData={inviteData} />
-          </Card>
+    <PublicRoute>
+      <Layout>
+        <div className="flex items-center justify-center py-10">
+          <div className="container max-w-lg">
+            <Card className="w-full p-8 shadow-lg bg-white">
+              <div className="mb-8 text-center">
+                <h1 className="text-3xl font-bold text-lodge-brown">Create an account</h1>
+                {inviteData && (
+                  <p className="mt-2 text-pine-green-600">
+                    You've been invited to join as a {inviteData.role}.
+                  </p>
+                )}
+              </div>
+              <SignUpForm inviteData={inviteData} />
+            </Card>
+          </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </PublicRoute>
   );
 } 

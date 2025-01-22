@@ -20,6 +20,7 @@ const CustomerDashboard = lazy(() => import("@/pages/dashboards/CustomerDashboar
 const TicketsPage = lazy(() => import("@/pages/TicketsPage"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const InvitesPage = lazy(() => import("@/pages/admin/InvitesPage"));
+const UnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -82,6 +83,11 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <Root><Suspense fallback={<LoadingFallback />}><LandingPage /></Suspense></Root>,
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/unauthorized",
+    element: <Root><Suspense fallback={<LoadingFallback />}><UnauthorizedPage /></Suspense></Root>,
     errorElement: <ErrorBoundary />,
   },
   {
@@ -153,7 +159,7 @@ export const router = createBrowserRouter([
     element: (
       <Root>
         <Suspense fallback={<LoadingFallback />}>
-          <ProtectedRoute allowedRoles={['admin', 'agent'] as UserRole[]}>
+          <ProtectedRoute allowedRoles={['admin', 'agent', 'customer'] as UserRole[]}>
             <TicketsPage />
           </ProtectedRoute>
         </Suspense>

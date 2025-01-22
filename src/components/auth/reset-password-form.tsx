@@ -1,8 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
-import { FormInput } from '@/components/ui/form-input';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -11,12 +22,11 @@ export const ResetPasswordForm: React.FC = () => {
   const { resetPassword, loading, error } = useAuthStore();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ResetPasswordFormData>({
+  const form = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: '',
+    },
   });
 
   const onSubmit = async (data: ResetPasswordFormData) => {
@@ -32,73 +42,80 @@ export const ResetPasswordForm: React.FC = () => {
   if (isSubmitted) {
     return (
       <div className="text-center">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h3 className="text-2xl font-bold text-lodge-brown mb-2">
           Check your email
         </h3>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-pine-green-600">
           We've sent you a link to reset your password. Please check your email.
         </p>
-        <button
-          onClick={() => navigate('/auth/login')}
-          className="mt-4 text-sm font-semibold text-primary hover:text-primary/90"
+        <Button
+          onClick={() => navigate('/login')}
+          variant="link"
+          className="mt-4 text-lodge-brown hover:text-lodge-brown-700"
         >
           Back to login
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-          Reset your password
-        </h3>
-        <p className="mt-2 text-sm text-gray-600">
-          Enter your email address and we'll send you a link to reset your password.
-        </p>
-      </div>
-
-      <FormInput<ResetPasswordFormData>
-        id="email"
-        label="Email"
-        type="email"
-        placeholder="Enter your email"
-        register={register}
-        errors={errors}
-        required
-      />
-      
-      {error && (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                Error resetting password
-              </h3>
-              <div className="mt-2 text-sm text-red-700">{error}</div>
-            </div>
-          </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-lodge-brown mb-2">
+            Reset your password
+          </h3>
+          <p className="text-pine-green-600">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
         </div>
-      )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? 'Sending reset link...' : 'Send reset link'}
-      </button>
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-pine-green-700">Email</FormLabel>
+              <FormControl>
+                <Input 
+                  type="email" 
+                  placeholder="Enter your email"
+                  className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage className="text-ember-orange-500" />
+            </FormItem>
+          )}
+        />
+        
+        {error && (
+          <Alert variant="destructive" className="border-ember-orange-200 bg-ember-orange-50">
+            <AlertCircle className="h-4 w-4 text-ember-orange-500" />
+            <AlertTitle className="text-ember-orange-700">Error resetting password</AlertTitle>
+            <AlertDescription className="text-ember-orange-600">{error}</AlertDescription>
+          </Alert>
+        )}
 
-      <p className="text-center text-sm text-gray-600">
-        Remember your password?{' '}
-        <a
-          href="/auth/login"
-          className="font-semibold text-primary hover:text-primary/90"
+        <Button
+          type="submit"
+          className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
+          disabled={loading}
         >
-          Sign in
-        </a>
-      </p>
-    </form>
+          {loading ? 'Sending reset link...' : 'Send reset link'}
+        </Button>
+
+        <p className="text-center text-sm text-pine-green-600">
+          Remember your password?{' '}
+          <a
+            href="/login"
+            className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
+          >
+            Sign in
+          </a>
+        </p>
+      </form>
+    </Form>
   );
 }; 

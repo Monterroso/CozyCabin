@@ -1,108 +1,159 @@
-import React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { FormInput } from '@/components/ui/form-input';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
-import { useAuthStore } from '@/stores/authStore';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-export const LoginForm: React.FC = () => {
+export function LoginForm() {
   const navigate = useNavigate();
-  const { signIn, loading, error } = useAuthStore();
-  const { user } = useAuth();
+  const { toast } = useToast();
   
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await signIn(data.email, data.password);
-      // The useAuth hook will automatically update with the user's role
-      if (user?.role) {
-        navigate(`/dashboard/${user.role}`);
-      } else {
-        // Default to customer dashboard if no role is specified
-        navigate('/dashboard/customer');
+      setLoading(true);
+      setError(null);
+
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (signInError) {
+        throw signInError;
       }
-    } catch (error) {
-      // Error is already handled by the auth store
-      console.error('Login failed:', error);
+
+      if (!authData.user) {
+        throw new Error('Failed to sign in');
+      }
+
+      // Get user profile to determine role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
+
+      // Redirect to appropriate dashboard based on role
+      if (profile?.role) {
+        navigate(`/dashboard/${profile.role}`);
+      } else {
+        navigate('/dashboard/customer'); // Default to customer dashboard
+      }
+      
+    } catch (err) {
+      console.error('Login error:', err);
+      
+      let errorMessage = 'An error occurred during sign in';
+      if (err instanceof Error) {
+        if (err.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password';
+        } else if (err.message.includes('Email not confirmed')) {
+          errorMessage = 'Please verify your email address';
+        }
+      }
+      setError(errorMessage);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <FormInput<LoginFormData>
-        id="email"
-        label="Email"
-        type="email"
-        placeholder="Enter your email"
-        register={register}
-        errors={errors}
-        required
-      />
-      <FormInput<LoginFormData>
-        id="password"
-        label="Password"
-        type="password"
-        placeholder="Enter your password"
-        register={register}
-        errors={errors}
-        required
-      />
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <input
-            id="remember"
-            type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-          />
-          <label
-            htmlFor="remember"
-            className="ml-2 block text-sm text-gray-900 dark:text-gray-100"
-          >
-            Remember me
-          </label>
-        </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-pine-green-700">Email</FormLabel>
+              <FormControl>
+                <Input 
+                  type="email" 
+                  placeholder="Enter your email"
+                  className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage className="text-ember-orange-500" />
+            </FormItem>
+          )}
+        />
 
-        <div className="text-sm">
-          <a
-            href="/auth/reset-password"
-            className="font-semibold text-primary hover:text-primary/90"
-          >
-            Forgot password?
-          </a>
-        </div>
-      </div>
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-pine-green-700">Password</FormLabel>
+              <FormControl>
+                <Input 
+                  type="password" 
+                  placeholder="Enter your password"
+                  className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage className="text-ember-orange-500" />
+            </FormItem>
+          )}
+        />
+        
+        {error && (
+          <Alert variant="destructive" className="border-ember-orange-200 bg-ember-orange-50">
+            <AlertCircle className="h-4 w-4 text-ember-orange-500" />
+            <AlertTitle className="text-ember-orange-700">Error</AlertTitle>
+            <AlertDescription className="text-ember-orange-600">{error}</AlertDescription>
+          </Alert>
+        )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-      >
-        {loading ? 'Signing in...' : 'Sign in'}
-      </button>
-
-      {error && (
-        <p className="text-red-500 text-sm text-center">{error}</p>
-      )}
-
-      <p className="text-center text-sm text-gray-600">
-        Don't have an account?{' '}
-        <a
-          href="/signup"
-          className="font-semibold text-primary hover:text-primary/90"
+        <Button
+          type="submit"
+          className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
+          disabled={loading}
         >
-          Sign up
-        </a>
-      </p>
-    </form>
+          {loading ? 'Signing in...' : 'Sign in'}
+        </Button>
+
+        <p className="text-center text-sm text-pine-green-600">
+          Don't have an account?{' '}
+          <a
+            href="/signup"
+            className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
+          >
+            Sign up
+          </a>
+        </p>
+      </form>
+    </Form>
   );
-}; 
+} 

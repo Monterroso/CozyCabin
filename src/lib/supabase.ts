@@ -7,14 +7,20 @@
 
 import { createContext } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
+import type { Database } from '@/types/supabase'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+if (!supabaseUrl) {
+  throw new Error('Missing VITE_SUPABASE_URL environment variable')
 }
+
+if (!supabaseAnonKey) {
+  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable')
+}
+
+console.log('Initializing Supabase client with URL:', supabaseUrl)
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -33,15 +39,23 @@ export type Enums<T extends keyof Database['public']['Enums']> = Database['publi
 
 // Helper to get the current user
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-};
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) {
+    console.error('Error getting current user:', error)
+    throw error
+  }
+  return user
+}
 
 // Helper to get the current session
 export const getCurrentSession = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session;
-};
+  const { data: { session }, error } = await supabase.auth.getSession()
+  if (error) {
+    console.error('Error getting current session:', error)
+    throw error
+  }
+  return session
+}
 
 type SupabaseContextType = {
   supabase: typeof supabase

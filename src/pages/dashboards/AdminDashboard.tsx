@@ -16,7 +16,7 @@ import {
   Settings2,
 } from 'lucide-react'
 
-export function AdminDashboard() {
+export default function AdminDashboard() {
   const navigate = useNavigate()
 
   return (

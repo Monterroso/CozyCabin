@@ -8,6 +8,7 @@ interface FormInputProps<T extends FieldValues> {
   register: UseFormRegister<T>;
   errors: FieldErrors<T>;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export const FormInput = <T extends FieldValues>({
@@ -18,6 +19,7 @@ export const FormInput = <T extends FieldValues>({
   register,
   errors,
   required = false,
+  disabled = false,
 }: FormInputProps<T>) => {
   return (
     <div className="space-y-2">
@@ -33,11 +35,12 @@ export const FormInput = <T extends FieldValues>({
         type={type}
         placeholder={placeholder}
         {...register(id)}
+        disabled={disabled}
         className={`block w-full rounded-md border ${
           errors[id]
             ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
             : 'border-gray-300 focus:border-primary focus:ring-primary'
-        } p-2.5 text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400`}
+        } p-2.5 text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 disabled:cursor-not-allowed disabled:opacity-50`}
       />
       {errors[id] && (
         <p className="mt-1 text-sm text-red-500">

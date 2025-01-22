@@ -7,9 +7,16 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
-import { Clock, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react'
+import {
+  Users,
+  TicketIcon,
+  Clock,
+  TrendingUp,
+  MessageSquare,
+  Settings2,
+} from 'lucide-react'
 
-export function AgentDashboard() {
+export default function AgentDashboard() {
   const navigate = useNavigate()
 
   return (
@@ -38,7 +45,7 @@ export function AgentDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Resolved Today</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Clock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold" aria-label="8 tickets resolved">8</div>
@@ -49,7 +56,7 @@ export function AgentDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Average Response</CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Clock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold" aria-label="24 minute average response time">24m</div>

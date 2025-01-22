@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { UserRole } from '@/lib/types/supabase';
 
 export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -14,6 +15,7 @@ export const signUpSchema = z.object({
     .string()
     .min(3, 'Full name must be at least 3 characters')
     .max(50, 'Full name must not exceed 50 characters'),
+  role: z.enum(['customer', 'agent', 'admin'] as const).default('customer'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -45,4 +47,4 @@ export const newPasswordSchema = z.object({
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-export type NewPasswordFormData = z.infer<typeof newPasswordSchema>; 
+export type NewPasswordFormData = z.infer<typeof newPasswordSchema>;

@@ -6,10 +6,16 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import {
+  TicketIcon,
+  Clock,
+  MessageSquare,
+  Settings2,
+} from 'lucide-react'
+import { Plus } from 'lucide-react'
 
-export function CustomerDashboard() {
+export default function CustomerDashboard() {
   const navigate = useNavigate()
 
   return (

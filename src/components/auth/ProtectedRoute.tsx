@@ -5,10 +5,10 @@ import type { UserRole } from '@/lib/types/supabase';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: UserRole;
+  allowedRoles?: UserRole[];
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const location = useLocation();
   const { user, isLoading } = useAuth();
 
@@ -16,21 +16,19 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lodge-brown">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Check role if required
-  if (requiredRole && user.role !== requiredRole) {
-    // Redirect to appropriate dashboard based on actual role
-    const dashboardPath = `/dashboard/${user.role}`;
-    return <Navigate to={dashboardPath} replace />;
+  // Check role access if allowedRoles is specified
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;

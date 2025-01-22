@@ -14,9 +14,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useNavigate } from 'react-router-dom'
 
-export function TicketsPage() {
+export default function TicketsPage() {
   const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
+  const navigate = useNavigate()
 
   return (
     <Layout>

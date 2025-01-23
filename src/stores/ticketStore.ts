@@ -292,6 +292,9 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       // 1. Upload file to storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${ticketId}/${Date.now()}.${fileExt}`;
+
+      const uploaded_by = (await supabase.auth.getUser()).data.user?.id;
+      console.log('[TicketStore] Uploaded by:', uploaded_by);
       
       const { error: uploadError } = await supabase.storage
         .from('ticket-attachments')

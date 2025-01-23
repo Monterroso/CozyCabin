@@ -2,7 +2,7 @@ import { lazy, createElement } from "react";
 import type { UserRole } from "@/lib/types/supabase";
 import { Navigate } from "react-router-dom";
 import type { ComponentType, LazyExoticComponent } from "react";
-import { useUser } from "@/contexts/UserContext";
+import { useAuth } from "@/hooks/useAuth";
 
 // Auth Pages
 import LoginPage from "@/pages/auth/LoginPage";
@@ -71,14 +71,19 @@ const protectedRoutes: AppRoute[] = [
 
 // Create redirect components
 const RootRedirect = () => {
-  const user = useUser();
-  const role = user?.role;
+  const { user, profile, isLoading, isInitialized } = useAuth();
 
-  if (!user) {
+  // Don't redirect until auth is fully initialized and not loading
+  if (!isInitialized || isLoading) {
+    return null; // Or return a loading spinner component if you have one
+  }
+
+  // Only redirect to login if we're sure the user is not authenticated
+  if (!user || !profile) {
     return createElement(Navigate, { to: "/auth/login", replace: true });
   }
 
-  switch (role) {
+  switch (profile.role) {
     case 'admin':
       return createElement(Navigate, { to: "/dashboard/admin", replace: true });
     case 'agent':

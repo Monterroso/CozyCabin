@@ -1,10 +1,9 @@
-import { createElement, type ComponentType, type LazyExoticComponent } from "react";
+import { createElement, type ComponentType } from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import type { AppRoute } from "./config";
 
 /**
- * Recursively wraps protected routes with AuthGuard and ProtectedRoute components
+ * Recursively wraps protected routes with AuthGuard component
  */
 export function wrapProtectedRoutes(routes: AppRoute[]): AppRoute[] {
   return routes.map((route) => {
@@ -15,20 +14,14 @@ export function wrapProtectedRoutes(routes: AppRoute[]): AppRoute[] {
     if (route.protected) {
       const OriginalComponent = route.element;
       
-      // Create a wrapper component that combines AuthGuard and ProtectedRoute if needed
+      // Create a wrapper component that uses AuthGuard
       newRoute.element = function ProtectedComponent(props: Record<string, unknown>) {
         const element = createElement(OriginalComponent as ComponentType, props);
-        
-        // If roles are specified, wrap with ProtectedRoute first
-        if (route.allowedRoles) {
-          return createElement(
-            ProtectedRoute, 
-            { allowedRoles: route.allowedRoles, children: element }
-          );
-        }
-        
-        // Otherwise just wrap with AuthGuard
-        return createElement(AuthGuard, { children: element });
+        return createElement(AuthGuard, { 
+          children: element,
+          requireAuth: true,
+          allowedRoles: route.allowedRoles 
+        });
       };
     }
 

@@ -19,7 +19,7 @@ import { useAuthStore } from '@/stores/authStore';
 
 export const ResetPasswordForm: React.FC = () => {
   const navigate = useNavigate();
-  const { resetPassword, loading, error } = useAuthStore();
+  const { resetPassword, isLoading, error } = useAuthStore();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   
   const form = useForm<ResetPasswordFormData>({
@@ -101,9 +101,9 @@ export const ResetPasswordForm: React.FC = () => {
         <Button
           type="submit"
           className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? 'Sending reset link...' : 'Send reset link'}
+          {isLoading ? 'Sending reset link...' : 'Send reset link'}
         </Button>
 
         <p className="text-center text-sm text-pine-green-600">

@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signUpSchema, type SignUpFormData } from '@/lib/validations/auth';
-import { supabase } from '@/lib/supabase';
-import { getBaseUrl } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -30,6 +29,7 @@ interface SignUpFormProps {
 export const SignUpForm: React.FC<SignUpFormProps> = ({ inviteData }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, error: authError, isLoading } = useAuthStore();
   
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
@@ -42,46 +42,12 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ inviteData }) => {
     }
   });
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: SignUpFormData) => {
     try {
-      setLoading(true);
       setError(null);
-
-      const redirectUrl = `${getBaseUrl()}/auth/callback`;
-      console.log('Attempting signup with redirect:', redirectUrl);
-
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.fullName,
-            role: inviteData?.role || 'customer'
-          },
-          emailRedirectTo: redirectUrl
-        }
-      });
-
-      if (signUpError) {
-        console.error('Signup error full details:', {
-          message: signUpError.message,
-          status: signUpError.status,
-          name: signUpError.name,
-          stack: signUpError.stack
-        });
-        // Handle specific error cases
-        if (signUpError.message.includes('User already registered')) {
-          throw new Error('An account with this email already exists');
-        }
-        throw signUpError;
-      }
-
-      if (!authData.user) {
-        throw new Error('Failed to create user account');
-      }
+      await signUp(data.email, data.password, data.fullName);
 
       // Show success message and instruct user to check email
       toast({
@@ -109,8 +75,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ inviteData }) => {
         }
       }
       setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -193,20 +157,20 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ inviteData }) => {
           )}
         />
         
-        {error && (
+        {(error || authError) && (
           <Alert variant="destructive" className="border-ember-orange-200 bg-ember-orange-50">
             <AlertCircle className="h-4 w-4 text-ember-orange-500" />
             <AlertTitle className="text-ember-orange-700">Error signing up</AlertTitle>
-            <AlertDescription className="text-ember-orange-600">{error}</AlertDescription>
+            <AlertDescription className="text-ember-orange-600">{error || authError}</AlertDescription>
           </Alert>
         )}
 
         <Button
           type="submit"
           className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? 'Creating account...' : 'Create account'}
+          {isLoading ? 'Creating account...' : 'Create account'}
         </Button>
 
         <p className="text-center text-sm text-pine-green-600">

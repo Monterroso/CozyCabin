@@ -1,7 +1,8 @@
 import { useLocation, Navigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Layout } from "@/components/layout/Layout";
-import { PublicRoute } from "@/components/auth/PublicRoute";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function VerifyEmailPage() {
   const location = useLocation();
@@ -12,8 +13,8 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <PublicRoute>
-      <Layout>
+    <Layout>
+      <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div className="flex items-center justify-center py-10">
           <div className="container max-w-lg">
             <Card className="w-full p-8 shadow-lg bg-white text-center">
@@ -27,7 +28,7 @@ export default function VerifyEmailPage() {
             </Card>
           </div>
         </div>
-      </Layout>
-    </PublicRoute>
+      </div>
+    </Layout>
   );
 } 

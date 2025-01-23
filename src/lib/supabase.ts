@@ -2,13 +2,13 @@
  * Supabase Client Configuration
  * 
  * Centralizes Supabase client initialization and provides typed database interface.
- * Uses environment variables for configuration.
+ * This is the only place where we initialize the Supabase client.
  */
 
-import { createContext } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase'
 
+// Environment validation
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -16,8 +16,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-console.log('Initializing Supabase client with URL:', supabaseUrl)
-
+// Initialize the Supabase client with proper typing
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -25,35 +24,15 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 })
 
-// Export auth and other commonly used features for convenience
-export const auth = supabase.auth
-
-// Export typed helpers
+// Type helpers for database tables and enums
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
 export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
 
-// Helper to get the current user
-export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error) {
-    console.error('Error getting current user:', error)
-    throw error
-  }
-  return user
-}
-
-// Helper to get the current session
-export const getCurrentSession = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession()
-  if (error) {
-    console.error('Error getting current session:', error)
-    throw error
-  }
-  return session
-}
-
-type SupabaseContextType = {
-  supabase: typeof supabase
-}
-
-export const SupabaseContext = createContext<SupabaseContextType>({ supabase }) 
+/**
+ * Hook to access the Supabase client.
+ * Use this when you need direct access to the Supabase client.
+ * For auth operations, use useAuth() instead.
+ */
+export function useSupabase() {
+  return supabase;
+} 

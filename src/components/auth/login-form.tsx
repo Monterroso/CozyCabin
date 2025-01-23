@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
-import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -21,6 +21,7 @@ import { AlertCircle } from "lucide-react";
 export function LoginForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login, error: authError, isLoading } = useAuthStore();
   
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -30,30 +31,15 @@ export function LoginForm() {
     },
   });
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setLoading(true);
       setError(null);
-
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (signInError) {
-        throw signInError;
-      }
-
-      if (!authData.user) {
-        throw new Error('Failed to sign in');
-      }
-
-      // Navigate to root, let auth guard handle routing
-      navigate('/', { replace: true });
+      await login(data.email, data.password);
       
+      // If we get here, login was successful
+      navigate('/', { replace: true });
     } catch (err) {
       console.error('Login error:', err);
       
@@ -71,8 +57,6 @@ export function LoginForm() {
         description: errorMessage,
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -117,20 +101,20 @@ export function LoginForm() {
           )}
         />
         
-        {error && (
+        {(error || authError) && (
           <Alert variant="destructive" className="border-ember-orange-200 bg-ember-orange-50">
             <AlertCircle className="h-4 w-4 text-ember-orange-500" />
             <AlertTitle className="text-ember-orange-700">Error</AlertTitle>
-            <AlertDescription className="text-ember-orange-600">{error}</AlertDescription>
+            <AlertDescription className="text-ember-orange-600">{error || authError}</AlertDescription>
           </Alert>
         )}
 
         <Button
           type="submit"
           className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? 'Signing in...' : 'Sign in'}
+          {isLoading ? 'Signing in...' : 'Sign in'}
         </Button>
 
         <p className="text-center text-sm text-pine-green-600">

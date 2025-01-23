@@ -8,7 +8,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { UserRole } from "@/lib/types/supabase";
 import { Layout } from "@/components/layout/Layout";
-import { PublicRoute } from "@/components/auth/PublicRoute";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -50,8 +51,8 @@ export default function SignUpPage() {
   }, [searchParams, toast, navigate]);
 
   return (
-    <PublicRoute>
-      <Layout>
+    <Layout>
+      <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div className="flex items-center justify-center py-10">
           <div className="container max-w-lg">
             <Card className="w-full p-8 shadow-lg bg-white">
@@ -67,7 +68,7 @@ export default function SignUpPage() {
             </Card>
           </div>
         </div>
-      </Layout>
-    </PublicRoute>
+      </div>
+    </Layout>
   );
 } 

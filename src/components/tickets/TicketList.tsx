@@ -4,7 +4,7 @@
  * Uses Shadcn components and MountainLodge theme.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTicketStore } from '@/stores/ticketStore';
 import { Input } from '@/components/ui/input';
@@ -46,19 +46,30 @@ const priorityColorMap: Record<TicketPriority, string> = {
 
 export function TicketList() {
   const navigate = useNavigate();
-  const { tickets, fetchTickets, setFilters } = useTicketStore();
+  const { tickets } = useTicketStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<TicketStatus | ''>('');
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | ''>('');
 
-  // Apply filters
-  useEffect(() => {
-    setFilters({
-      status: statusFilter || undefined,
-      priority: priorityFilter || undefined,
-      search: searchQuery || undefined,
+  // Client-side filtering
+  const filteredTickets = useMemo(() => {
+    return tickets.filter(ticket => {
+      const matchesSearch = searchQuery
+        ? ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ticket.description.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+      
+      const matchesStatus = statusFilter
+        ? ticket.status === statusFilter
+        : true;
+      
+      const matchesPriority = priorityFilter
+        ? ticket.priority === priorityFilter
+        : true;
+
+      return matchesSearch && matchesStatus && matchesPriority;
     });
-  }, [searchQuery, statusFilter, priorityFilter, setFilters]);
+  }, [tickets, searchQuery, statusFilter, priorityFilter]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -68,7 +79,7 @@ export function TicketList() {
     });
   };
 
-  if (tickets.length === 0) {
+  if (filteredTickets.length === 0) {
     return (
       <div className="text-center py-12 bg-cabin-cream rounded-lg">
         <h3 className="text-lg font-medium text-lodge-brown mb-2">No tickets found</h3>
@@ -131,7 +142,7 @@ export function TicketList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tickets.map((ticket) => (
+            {filteredTickets.map((ticket) => (
               <TableRow
                 key={ticket.id}
                 className="cursor-pointer hover:bg-cabin-cream/30"

@@ -21,7 +21,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, logout } = useAuth()
   const { role } = user?.user_metadata || {}
 
   const navItems = {
@@ -82,7 +82,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 text-destructive"
-              onClick={() => signOut()}
+              onClick={() => logout()}
             >
               <LogOut className="h-5 w-5" />
               Sign Out

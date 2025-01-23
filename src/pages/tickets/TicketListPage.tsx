@@ -10,8 +10,10 @@ export default function TicketListPage() {
   const { fetchTickets, loading } = useTicketStore()
 
   useEffect(() => {
+    // Initial fetch of tickets
     fetchTickets()
-  }, [fetchTickets])
+    // Empty dependency array since we only want this to run once on mount
+  }, []) // Removed fetchTickets from dependencies
 
   return (
     <DashboardLayout>

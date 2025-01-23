@@ -65,6 +65,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
   fetchTickets: async (filters = get().filters) => {
     try {
+      console.log('[TicketStore] Fetching tickets with filters:', filters);
       set({ loading: true, error: null });
       let query = supabase
         .from('tickets')
@@ -86,6 +87,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       }
 
       const { data, error } = await query;
+      console.log('[TicketStore] Tickets fetch response:', { count: data?.length, error });
 
       if (error) throw error;
       set({ tickets: data || [], filters });

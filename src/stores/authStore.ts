@@ -39,6 +39,7 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
 
   // Helper function to fetch profile
   const fetchProfile = async (userId: string) => {
+    console.log('[AuthStore] Fetching profile for user:', userId);
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -46,11 +47,13 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
       .single();
 
     if (error) throw error;
+    console.log('[AuthStore] Profile fetch response:', profile);
     return profile as UserProfile;
   };
 
   // Helper function to handle auth state changes
   const handleAuthStateChange = async (session: Session | null) => {
+    console.log('[AuthStore] Auth state changed:', session ? 'Session exists' : 'No session');
     if (session?.user) {
       try {
         const profile = await fetchProfile(session.user.id);
@@ -91,12 +94,15 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
     // Auth actions
     initialize: async () => {
       try {
+        console.log('[AuthStore] Initializing auth state');
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('[AuthStore] Got initial session:', session ? 'Session exists' : 'No session');
         await handleAuthStateChange(session);
         set({ initialized: true });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (_event, session) => {
+            console.log('[AuthStore] Auth state change event received');
             await handleAuthStateChange(session);
           }
         );

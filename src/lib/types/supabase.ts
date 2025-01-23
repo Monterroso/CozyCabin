@@ -61,13 +61,13 @@ export interface Database {
           created_at: string;
           updated_at: string;
           closed_at: string | null;
-          tags: string[];
-          metadata: Json;
+          tags: string[] | null;
+          metadata: Record<string, any> | null;
         };
         Insert: {
           id?: string;
           subject: string;
-          description: string;
+          description?: string;
           status?: TicketStatus;
           priority?: TicketPriority;
           created_by: string;
@@ -75,8 +75,8 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           closed_at?: string | null;
-          tags?: string[];
-          metadata?: Json;
+          tags?: string[] | null;
+          metadata?: Record<string, any> | null;
         };
         Update: {
           id?: string;
@@ -89,8 +89,8 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           closed_at?: string | null;
-          tags?: string[];
-          metadata?: Json;
+          tags?: string[] | null;
+          metadata?: Record<string, any> | null;
         };
       };
       ticket_comments: {

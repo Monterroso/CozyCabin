@@ -29,7 +29,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
 import { useAuthStore } from '@/stores/authStore'
-import { Ticket, TicketStatus, TicketPriority, PRIORITY_COLORS, STATUS_COLORS } from '@/types/ticket'
+import { 
+  Ticket, 
+  TicketStatus, 
+  TicketPriority,
+  TicketStatusEnum,
+  TicketPriorityEnum
+} from '@/lib/types/ticket'
 import { cn } from '@/lib/utils'
 
 const internalNoteSchema = z.object({

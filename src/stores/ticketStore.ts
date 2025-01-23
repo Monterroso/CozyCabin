@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/types/supabase';
 import type { TicketStatus, TicketPriority } from '@/lib/types/supabase';
-import { Ticket, TicketInsert, TicketUpdate, User } from '@/types/ticket';
+import { Ticket, CreateTicket as TicketInsert, UpdateTicket as TicketUpdate, User } from '@/lib/types/ticket';
 import { useAuthStore } from './authStore';
 
 type TicketComment = Database['public']['Tables']['ticket_comments']['Row'];
@@ -105,11 +105,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       const { data, error } = await supabase
         .from('tickets')
         .insert(ticket)
-        .select(`
-          *,
-          customer:customer_id(*),
-          assigned_to:assigned_to_id(*)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
@@ -122,6 +118,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
     } catch (err) {
       const error = err as Error;
       set({ error: error.message });
+      console.error('[TicketStore] Error creating ticket:', error);
       return null;
     }
   },

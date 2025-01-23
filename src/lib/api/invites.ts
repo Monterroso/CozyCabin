@@ -1,5 +1,5 @@
 import { supabase } from "../supabase";
-import { CreateInviteRequest, Invite, VerifyInviteResponse } from "../types/invites";
+import { CreateInviteRequest, Invite, VerifyInviteResponse } from "@/lib/types/invites";
 
 export async function createInvite(data: CreateInviteRequest): Promise<string> {
   const { data: token, error } = await supabase

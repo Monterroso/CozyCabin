@@ -21,12 +21,17 @@ import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
+import {
+  Ticket,
+  TicketStatus,
+  TicketPriority,
+  TicketStatusEnum,
+  TicketPriorityEnum
+} from '@/lib/types/supabase'
 import { 
-  TicketStatus, 
-  TicketPriority, 
   PRIORITY_COLORS, 
   STATUS_COLORS 
-} from '@/types/ticket'
+} from '@/lib/types/ticket'
 
 const priorityOrder = {
   urgent: 3,

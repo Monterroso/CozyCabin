@@ -6,7 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/lib/types/supabase'
 
 // Environment validation
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL

@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import type { TicketStatus, TicketPriority } from '@/types/tickets'
+import type { TicketStatus, TicketPriority } from '@/lib/types/ticket'
 
 const statusColorMap = {
   'open': 'bg-pine-green/20 text-pine-green',

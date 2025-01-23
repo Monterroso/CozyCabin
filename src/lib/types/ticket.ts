@@ -1,12 +1,26 @@
 import { z } from "zod";
+import type { TicketStatus, TicketPriority } from "./supabase";
 
-// Ticket Priority Enum
-export const TicketPriorityEnum = z.enum(["normal", "low", "medium", "high", "urgent"]);
-export type TicketPriority = z.infer<typeof TicketPriorityEnum>;
+// Ticket Status and Priority Enums (using types from supabase)
+export const TicketStatusEnum = z.enum(["open", "in_progress", "pending", "solved", "closed"]) satisfies z.ZodType<TicketStatus>;
+export const TicketPriorityEnum = z.enum(["normal", "low", "medium", "high", "urgent"]) satisfies z.ZodType<TicketPriority>;
 
-// Ticket Status Enum
-export const TicketStatusEnum = z.enum(["open", "in_progress", "pending", "solved", "closed"]);
-export type TicketStatus = z.infer<typeof TicketStatusEnum>;
+// Color mappings for UI
+export const PRIORITY_COLORS: Record<TicketPriority, string> = {
+  urgent: 'bg-red-500',
+  high: 'bg-orange-500',
+  normal: 'bg-blue-500',
+  low: 'bg-green-500',
+  medium: 'bg-yellow-500',
+} as const;
+
+export const STATUS_COLORS: Record<TicketStatus, string> = {
+  open: 'bg-pine-green',
+  in_progress: 'bg-lodge-brown',
+  pending: 'bg-ember-orange',
+  solved: 'bg-blue-500',
+  closed: 'bg-twilight-gray',
+} as const;
 
 // Base Ticket Schema
 export const TicketSchema = z.object({

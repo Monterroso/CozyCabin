@@ -53,7 +53,7 @@ export function AgentTicketQueue() {
   // Filter and sort tickets
   const filteredTickets = tickets
     .filter((ticket) => {
-      const matchesSearch = ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch = ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ticket.description.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter
       const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter

@@ -25,6 +25,20 @@ interface TicketState {
   loading: boolean;
   error: string | null;
   filters: TicketFilters;
+  agentStats: {
+    assigned_tickets: number;
+    resolved_today: number;
+    average_response_time: number;
+    satisfaction_rate: number;
+  } | null;
+  dashboardTickets: {
+    id: string;
+    subject: string;
+    status: TicketStatus;
+    priority: string;
+    created_at: string;
+    updated_at: string;
+  }[];
   
   // Ticket CRUD
   fetchTickets: (filters?: TicketFilters) => Promise<void>;
@@ -54,6 +68,9 @@ interface TicketState {
   fetchAgentQueue: () => Promise<void>;
   assignTicket: (ticketId: string) => Promise<void>;
   updateTicketStatus: (ticketId: string, status: TicketStatus) => Promise<void>;
+  
+  // Dashboard operations
+  fetchAgentDashboardData: () => Promise<void>;
 }
 
 export const useTicketStore = create<TicketState>((set, get) => ({
@@ -64,6 +81,8 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   loading: false,
   error: null,
   filters: {},
+  agentStats: null,
+  dashboardTickets: [],
 
   fetchTickets: async (filters = get().filters) => {
     try {
@@ -292,9 +311,6 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       // 1. Upload file to storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${ticketId}/${Date.now()}.${fileExt}`;
-
-      const uploaded_by = (await supabase.auth.getUser()).data.user?.id;
-      console.log('[TicketStore] Uploaded by:', uploaded_by);
       
       const { error: uploadError } = await supabase.storage
         .from('ticket-attachments')
@@ -458,5 +474,38 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       status,
       closed_at: status === 'closed' ? new Date().toISOString() : null,
     });
+  },
+
+  fetchAgentDashboardData: async () => {
+    try {
+      set({ loading: true, error: null });
+      const { data: agentStats, error: statsError } = await supabase
+        .rpc('get_agent_performance_stats');
+
+      if (statsError) throw statsError;
+
+      const currentUser = (await supabase.auth.getUser()).data.user;
+      if (!currentUser) throw new Error('No authenticated user found');
+
+      const { data: dashboardTickets, error: ticketsError } = await supabase
+        .from('tickets')
+        .select('id, subject, status, priority, created_at, updated_at')
+        // .eq('assigned_to', currentUser.id)
+        .order('priority', { ascending: false })
+        .order('created_at', { ascending: true })
+        .limit(10);
+
+      if (ticketsError) throw ticketsError;
+
+      set({ 
+        agentStats,
+        dashboardTickets: dashboardTickets || [],
+        loading: false 
+      });
+    } catch (err) {
+      const error = err as Error;
+      set({ error: error.message, loading: false });
+      throw error;
+    }
   },
 })); 

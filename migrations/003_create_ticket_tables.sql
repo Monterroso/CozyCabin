@@ -184,13 +184,16 @@ CREATE POLICY "Agents can upload attachments"
     )
   );
 
--- Create function for getting agent performance stats
+-- Make sure we're in a transaction (good practice for migrations)
+BEGIN;
+
+-- CREATE OR REPLACE FUNCTION ensures that if the function already exists, it will be replaced
 CREATE OR REPLACE FUNCTION get_agent_performance_stats()
 RETURNS TABLE (
   assigned_tickets bigint,
   resolved_today bigint,
-  average_response_time float,
-  satisfaction_rate float
+  average_response_time double precision, -- changed from float to double precision
+  satisfaction_rate double precision      -- changed from float to double precision
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -199,13 +202,13 @@ AS $$
 DECLARE
   agent_id uuid;
 BEGIN
-  agent_id := auth.uid();
-  
+  agent_id := auth.uid();  -- The currently logged-in user
+
   RETURN QUERY
   WITH response_times AS (
     SELECT
       t.id,
-      MIN(c.created_at) - t.created_at as first_response_time
+      MIN(c.created_at) - t.created_at AS first_response_time
     FROM tickets t
     LEFT JOIN ticket_comments c ON c.ticket_id = t.id
     WHERE t.assigned_to = agent_id
@@ -213,19 +216,33 @@ BEGIN
   ),
   satisfaction AS (
     SELECT
-      COUNT(*) FILTER (WHERE status = 'solved') as solved_count,
-      COUNT(*) as total_count
+      COUNT(*) FILTER (WHERE status = 'solved') AS solved_count,
+      COUNT(*) AS total_count
     FROM tickets
     WHERE assigned_to = agent_id
   )
   SELECT
-    COUNT(*) FILTER (WHERE assigned_to = agent_id) as assigned_tickets,
-    COUNT(*) FILTER (WHERE status = 'solved' AND closed_at >= CURRENT_DATE) as resolved_today,
-    EXTRACT(epoch FROM AVG(first_response_time))/60 as average_response_time,
-    COALESCE(solved_count::float / NULLIF(total_count, 0), 0) as satisfaction_rate
+    COUNT(*) FILTER (WHERE assigned_to = agent_id) AS assigned_tickets,
+    COUNT(*) FILTER (WHERE status = 'solved' AND closed_at >= CURRENT_DATE) AS resolved_today,
+
+    -- Explicitly cast the numeric result to double precision:
+    (EXTRACT(EPOCH FROM AVG(response_times.first_response_time)) / 60)::double precision AS average_response_time,
+
+    -- Also cast satisfaction_rate to double precision:
+    COALESCE(
+      (satisfaction.solved_count::float / NULLIF(satisfaction.total_count, 0))::double precision,
+      0
+    ) AS satisfaction_rate
+
   FROM tickets
   CROSS JOIN satisfaction
   LEFT JOIN response_times ON response_times.id = tickets.id
-  WHERE assigned_to = agent_id;
+  WHERE tickets.assigned_to = agent_id
+  GROUP BY
+    satisfaction.solved_count,
+    satisfaction.total_count;
+
 END;
-$$; 
+$$;
+
+COMMIT;

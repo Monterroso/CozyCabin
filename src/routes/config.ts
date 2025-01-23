@@ -59,6 +59,18 @@ const protectedRoutes: AppRoute[] = [
     protected: true,
     allowedRoles: ['agent', 'admin'],
   },
+  {
+    path: "/dashboard/agent/tickets",
+    element: TicketListPage,
+    protected: true,
+    allowedRoles: ['agent', 'admin'],
+  },
+  {
+    path: "/dashboard/agent/tickets/:id",
+    element: TicketDetailPage,
+    protected: true,
+    allowedRoles: ['agent', 'admin'],
+  },
   
   // Admin Routes
   {

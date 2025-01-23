@@ -5,6 +5,7 @@ import type { TicketStatus, TicketPriority } from '@/lib/types/supabase';
 import { Ticket, CreateTicket as TicketInsert, UpdateTicket as TicketUpdate } from '@/lib/types/ticket';
 import type { User } from '@supabase/supabase-js';
 import { useAuthStore } from './authStore';
+import type { UserProfile } from './authStore';
 
 type TicketComment = Database['public']['Tables']['ticket_comments']['Row'];
 type TicketAttachment = Database['public']['Tables']['ticket_attachments']['Row'];
@@ -22,6 +23,7 @@ interface TicketState {
   selectedTicket: Ticket | null;
   selectedTicketComments: TicketComment[];
   selectedTicketAttachments: TicketAttachment[];
+  userProfiles: Record<string, UserProfile>;
   loading: boolean;
   error: string | null;
   filters: TicketFilters;
@@ -71,6 +73,9 @@ interface TicketState {
   
   // Dashboard operations
   fetchAgentDashboardData: () => Promise<void>;
+
+  // Profile operations
+  fetchProfiles: (userIds: string[]) => Promise<void>;
 }
 
 export const useTicketStore = create<TicketState>((set, get) => ({
@@ -78,6 +83,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   selectedTicket: null,
   selectedTicketComments: [],
   selectedTicketAttachments: [],
+  userProfiles: {},
   loading: false,
   error: null,
   filters: {},
@@ -90,11 +96,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       set({ loading: true, error: null });
       let query = supabase
         .from('tickets')
-        .select(`
-          *,
-          customer:customer_id(*),
-          assigned_to:assigned_to(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -118,7 +120,18 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       console.log('[TicketStore] Tickets fetch response:', { count: data?.length, error });
 
       if (error) throw error;
-      set({ tickets: data || [], filters });
+
+      if (data) {
+        // Fetch profiles for all users involved in tickets
+        const userIds = data.flatMap(ticket => [
+          ticket.created_by,
+          ticket.assigned_to
+        ]).filter(Boolean);
+        
+        await get().fetchProfiles(userIds);
+        
+        set({ tickets: data, filters });
+      }
     } catch (err) {
       const error = err as Error;
       set({ error: error.message });
@@ -399,15 +412,17 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       set({ loading: true, error: null });
       const { data: ticket, error } = await supabase
         .from('tickets')
-        .select(`
-          *,
-          customer:customer_id(*),
-          assigned_to:assigned_to(*)
-        `)
+        .select('*')
         .eq('id', ticketId)
         .single();
 
       if (error) throw error;
+
+      // Fetch profiles for the ticket's users
+      if (ticket) {
+        const userIds = [ticket.created_by, ticket.assigned_to].filter(Boolean);
+        await get().fetchProfiles(userIds);
+      }
 
       set({ selectedTicket: ticket as Ticket });
       await get().fetchComments(ticketId);
@@ -506,6 +521,37 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       const error = err as Error;
       set({ error: error.message, loading: false });
       throw error;
+    }
+  },
+
+  fetchProfiles: async (userIds: string[]) => {
+    try {
+      const uniqueIds = Array.from(new Set(userIds));
+      const existingIds = Object.keys(get().userProfiles);
+      const missingIds = uniqueIds.filter(id => !existingIds.includes(id));
+      
+      if (missingIds.length === 0) return;
+      
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', missingIds);
+
+      if (error) throw error;
+      
+      if (profiles) {
+        set((state) => ({
+          userProfiles: {
+            ...state.userProfiles,
+            ...profiles.reduce((acc, profile) => {
+              acc[profile.id] = profile as UserProfile;
+              return acc;
+            }, {} as Record<string, UserProfile>)
+          }
+        }));
+      }
+    } catch (err) {
+      console.error('[TicketStore] Error fetching profiles:', err);
     }
   },
 })); 

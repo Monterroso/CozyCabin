@@ -32,7 +32,7 @@ export const NewPasswordForm: React.FC = () => {
   const onSubmit = async (data: NewPasswordFormData) => {
     try {
       await updatePassword(data.password);
-      navigate('/login', { 
+      navigate('/auth/login', { 
         state: { message: 'Password updated successfully. Please sign in with your new password.' }
       });
     } catch (error) {
@@ -110,7 +110,7 @@ export const NewPasswordForm: React.FC = () => {
         <p className="text-center text-sm text-pine-green-600">
           Remember your password?{' '}
           <a
-            href="/login"
+            href="/auth/login"
             className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
           >
             Sign in

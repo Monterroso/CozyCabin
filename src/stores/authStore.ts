@@ -148,26 +148,15 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: name  // Pass name in user metadata for the trigger
+            }
+          }
         });
 
         if (error) throw error;
-
-        if (data.user) {
-          // Create profile
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([
-              {
-                id: data.user.id,
-                email,
-                name,
-                role: 'customer', // Default role for new users
-              },
-            ]);
-
-          if (profileError) throw profileError;
-          await handleAuthStateChange(data.session);
-        }
+        await handleAuthStateChange(data.session);
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Failed to sign up',

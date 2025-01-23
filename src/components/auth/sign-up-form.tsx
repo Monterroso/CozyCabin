@@ -176,7 +176,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ inviteData }) => {
         <p className="text-center text-sm text-pine-green-600">
           Already have an account?{' '}
           <a
-            href="/login"
+            href="/auth/login"
             className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
           >
             Sign in

@@ -49,7 +49,7 @@ export const ResetPasswordForm: React.FC = () => {
           We've sent you a link to reset your password. Please check your email.
         </p>
         <Button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/auth/login')}
           variant="link"
           className="mt-4 text-lodge-brown hover:text-lodge-brown-700"
         >
@@ -109,7 +109,7 @@ export const ResetPasswordForm: React.FC = () => {
         <p className="text-center text-sm text-pine-green-600">
           Remember your password?{' '}
           <a
-            href="/login"
+            href="/auth/login"
             className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
           >
             Sign in

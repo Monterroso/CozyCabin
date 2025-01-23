@@ -21,21 +21,17 @@ import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
-import {
-  Ticket,
-  TicketStatus,
-  TicketPriority,
-  TicketStatusEnum,
-  TicketPriorityEnum
-} from '@/lib/types/supabase'
+import { TicketStatus, TicketPriority } from '@/lib/types/supabase'
 import { 
   PRIORITY_COLORS, 
-  STATUS_COLORS 
+  STATUS_COLORS,
+  type Ticket
 } from '@/lib/types/ticket'
 
 const priorityOrder = {
-  urgent: 3,
-  high: 2,
+  urgent: 4,
+  high: 3,
+  medium: 2,
   normal: 1,
   low: 0,
 } as const
@@ -48,7 +44,7 @@ export function AgentTicketQueue() {
   const [sortBy, setSortBy] = useState<'created_at' | 'priority'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   
-  const { tickets, assignTicket } = useTicketStore()
+  const { tickets, userProfiles, assignTicket } = useTicketStore()
 
   // Filter and sort tickets
   const filteredTickets = tickets
@@ -131,7 +127,7 @@ export function AgentTicketQueue() {
             <TableRow>
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
-              <TableHead className="w-[300px]">Title</TableHead>
+              <TableHead className="w-[300px]">Subject</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Created</TableHead>
               <TableHead>Assigned To</TableHead>
@@ -161,12 +157,14 @@ export function AgentTicketQueue() {
                     {ticket.priority}
                   </Badge>
                 </TableCell>
-                <TableCell className="font-medium">{ticket.title}</TableCell>
-                <TableCell>{ticket.customer.email}</TableCell>
+                <TableCell className="font-medium">{ticket.subject}</TableCell>
+                <TableCell>
+                  {userProfiles[ticket.created_by]?.email || 'Loading...'}
+                </TableCell>
                 <TableCell>{formatDistanceToNow(new Date(ticket.created_at))} ago</TableCell>
                 <TableCell>
                   {ticket.assigned_to ? (
-                    ticket.assigned_to.name
+                    userProfiles[ticket.assigned_to]?.email || 'Loading...'
                   ) : (
                     <Button
                       variant="outline"
@@ -181,7 +179,7 @@ export function AgentTicketQueue() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/agent/tickets/${ticket.id}`)}
+                    onClick={() => navigate(`/dashboard/agent/tickets/${ticket.id}`)}
                   >
                     View Details
                   </Button>

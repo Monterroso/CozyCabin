@@ -31,9 +31,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       { icon: Settings, label: 'Settings', href: '/settings' },
     ],
     agent: [
-      { icon: LayoutDashboard, label: 'Dashboard', href: '/agent/dashboard' },
-      { icon: Ticket, label: 'Tickets', href: '/agent/tickets' },
-      { icon: Settings, label: 'Settings', href: '/agent/settings' },
+      { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/agent' },
+      { icon: Ticket, label: 'Tickets', href: '/dashboard/agent/tickets' },
+      { icon: Settings, label: 'Settings', href: '/dashboard/agent/settings' },
     ],
     admin: [
       { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -44,6 +44,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   const currentNavItems = navItems[role as keyof typeof navItems] || navItems.customer
+  console.log(currentNavItems)
 
   return (
     <div className="min-h-screen bg-background">

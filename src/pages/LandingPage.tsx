@@ -17,10 +17,10 @@ export default function LandingPage() {
         </p>
         <div className="space-x-4">
           <Button asChild variant="default">
-            <Link to="/login">Sign In</Link>
+            <Link to="/auth/login">Sign In</Link>
           </Button>
           <Button asChild variant="secondary">
-            <Link to="/signup">Sign Up</Link>
+            <Link to="/auth/signup">Sign Up</Link>
           </Button>
         </div>
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">

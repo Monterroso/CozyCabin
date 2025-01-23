@@ -36,7 +36,7 @@ export default function SignUpPage() {
               description: "This invite link is invalid or has expired.",
               variant: "destructive",
             });
-            navigate("/signup");
+            navigate("/auth/signup");
           }
         })
         .catch((error) => {
@@ -45,7 +45,7 @@ export default function SignUpPage() {
             description: error.message,
             variant: "destructive",
           });
-          navigate("/signup");
+          navigate("/auth/signup");
         });
     }
   }, [searchParams, toast, navigate]);

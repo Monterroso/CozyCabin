@@ -29,6 +29,7 @@ export default function CreateTicketPage() {
 
   // Handle successful ticket creation
   const onSuccess = (ticketId: string) => {
+    console.log("Ticket created successfully:", ticketId);
     toast({
       title: "Ticket Created Successfully",
       description: "You will be redirected to your ticket details.",

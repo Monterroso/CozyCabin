@@ -48,24 +48,24 @@ export function TicketList() {
   const navigate = useNavigate();
   const { tickets } = useTicketStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TicketStatus | ''>('');
-  const [priorityFilter, setPriorityFilter] = useState<TicketPriority | ''>('');
+  const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<TicketPriority | 'all'>('all');
 
   // Client-side filtering
   const filteredTickets = useMemo(() => {
     return tickets.filter(ticket => {
       const matchesSearch = searchQuery
-        ? ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ? ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ticket.description.toLowerCase().includes(searchQuery.toLowerCase())
         : true;
       
-      const matchesStatus = statusFilter
-        ? ticket.status === statusFilter
-        : true;
+      const matchesStatus = statusFilter === 'all'
+        ? true
+        : ticket.status === statusFilter;
       
-      const matchesPriority = priorityFilter
-        ? ticket.priority === priorityFilter
-        : true;
+      const matchesPriority = priorityFilter === 'all'
+        ? true
+        : ticket.priority === priorityFilter;
 
       return matchesSearch && matchesStatus && matchesPriority;
     });
@@ -101,12 +101,12 @@ export function TicketList() {
             className="pl-10"
           />
         </div>
-        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TicketStatus | '')}>
+        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TicketStatus | 'all')}>
           <SelectTrigger>
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="open">Open</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
@@ -114,12 +114,12 @@ export function TicketList() {
             <SelectItem value="closed">Closed</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as TicketPriority | '')}>
+        <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as TicketPriority | 'all')}>
           <SelectTrigger>
             <SelectValue placeholder="Filter by priority" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Priorities</SelectItem>
+            <SelectItem value="all">All Priorities</SelectItem>
             <SelectItem value="urgent">Urgent</SelectItem>
             <SelectItem value="high">High</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
@@ -148,7 +148,7 @@ export function TicketList() {
                 className="cursor-pointer hover:bg-cabin-cream/30"
                 onClick={() => navigate(`/tickets/${ticket.id}`)}
               >
-                <TableCell className="font-medium text-lodge-brown">{ticket.title}</TableCell>
+                <TableCell className="font-medium text-lodge-brown">{ticket.subject}</TableCell>
                 <TableCell>
                   <Badge className={cn('capitalize', statusColorMap[ticket.status])}>
                     {ticket.status.replace('_', ' ')}

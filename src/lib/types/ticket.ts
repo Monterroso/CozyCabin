@@ -30,6 +30,7 @@ export const TicketSchema = z.object({
   status: TicketStatusEnum.default("open"),
   priority: TicketPriorityEnum.default("normal"),
   created_by: z.string().uuid(),
+  customer_id: z.string().uuid(),
   assigned_to: z.string().uuid().nullable(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
@@ -49,6 +50,7 @@ export const CreateTicketSchema = TicketSchema.omit({
   assigned_to: true,
   status: true,
 }).extend({
+  created_by: z.string().uuid().optional(),
   attachments: z.array(z.object({
     file_name: z.string(),
     file_type: z.string(),

@@ -23,9 +23,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSupabase } from '@/hooks/useSupabase'
 import { useToast } from '@/components/ui/use-toast'
 import { ticketStatuses } from '@/lib/schemas/ticket'
+import { useAuthStore } from '@/stores/authStore'
+import { useTicketStore } from '@/stores/ticketStore'
 
 type TicketStatus = typeof ticketStatuses[number]
 
@@ -47,7 +48,7 @@ interface RecentTicket {
  * CustomerDashboard Component
  * 
  * A dashboard component that displays ticket-related information and actions
- * for customer users. Integrates with Supabase for data fetching and provides
+ * for customer users. Uses the ticket store for data management and provides
  * navigation to ticket management features.
  * 
  * @returns {JSX.Element} A dashboard interface for customer users
@@ -60,44 +61,53 @@ export function CustomerDashboard() {
     pending: 0,
   })
   const [recentTickets, setRecentTickets] = useState<RecentTicket[]>([])
-  const { supabase } = useSupabase()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const { tickets, fetchTickets, loading, error } = useTicketStore()
 
-  /**
-   * Fetches ticket statistics and recent tickets for the current user
-   * Updates the dashboard state with the retrieved data
-   */
-  const fetchDashboardData = async () => {
-    try {
-      const { data: ticketStats, error: statsError } = await supabase
-        .rpc('get_customer_ticket_stats')
+  useEffect(() => {
+    if (user) {
+      // Set filter to only show current user's tickets
+      fetchTickets({ customer_id: user.id })
+    }
+  }, [user])
 
-      if (statsError) throw statsError
+  useEffect(() => {
+    if (tickets.length > 0) {
+      // Calculate stats from tickets
+      const newStats = {
+        total: tickets.length,
+        open: tickets.filter(t => t.status === 'open').length,
+        solved: tickets.filter(t => t.status === 'solved').length,
+        pending: tickets.filter(t => t.status === 'pending').length,
+      }
+      setStats(newStats)
 
-      const { data: tickets, error: ticketsError } = await supabase
-        .from('tickets')
-        .select('id, subject, status, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5)
+      // Get 5 most recent tickets
+      const recent = tickets
+        .slice()
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5)
+        .map(t => ({
+          id: t.id,
+          subject: t.subject,
+          status: t.status as TicketStatus,
+          created_at: t.created_at,
+        }))
+      setRecentTickets(recent)
+    }
+  }, [tickets])
 
-      if (ticketsError) throw ticketsError
-
-      setStats(ticketStats)
-      setRecentTickets(tickets)
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+  useEffect(() => {
+    if (error) {
       toast({
         title: 'Error',
         description: 'Failed to load dashboard data. Please try again.',
         variant: 'destructive',
       })
     }
-  }
-
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
+  }, [error])
 
   return (
     <main 

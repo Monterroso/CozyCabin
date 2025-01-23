@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/types/supabase';
 import type { TicketStatus, TicketPriority } from '@/lib/types/supabase';
-import { Ticket, CreateTicket as TicketInsert, UpdateTicket as TicketUpdate, User } from '@/lib/types/ticket';
+import { Ticket, CreateTicket as TicketInsert, UpdateTicket as TicketUpdate } from '@/lib/types/ticket';
+import type { User } from '@supabase/supabase-js';
 import { useAuthStore } from './authStore';
 
 type TicketComment = Database['public']['Tables']['ticket_comments']['Row'];
@@ -12,6 +13,7 @@ interface TicketFilters {
   status?: TicketStatus;
   priority?: TicketPriority;
   assignedTo?: string | null;
+  customer_id?: string;
   search?: string;
 }
 
@@ -69,7 +71,11 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       set({ loading: true, error: null });
       let query = supabase
         .from('tickets')
-        .select('*')
+        .select(`
+          *,
+          customer:customer_id(*),
+          assigned_to:assigned_to(*)
+        `)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -81,6 +87,9 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       }
       if (filters.assignedTo !== undefined) {
         query = query.eq('assigned_to', filters.assignedTo);
+      }
+      if (filters.customer_id) {
+        query = query.eq('customer_id', filters.customer_id);
       }
       if (filters.search) {
         query = query.or(`subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
@@ -102,9 +111,18 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   createTicket: async (ticket: TicketInsert) => {
     try {
       set({ loading: true, error: null });
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser) throw new Error('User must be logged in to create a ticket');
+
+      const ticketData = {
+        ...ticket,
+        created_by: currentUser.id,
+        customer_id: ticket.customer_id || currentUser.id,
+      };
+
       const { data, error } = await supabase
         .from('tickets')
-        .insert(ticket)
+        .insert(ticketData)
         .select()
         .single();
 
@@ -352,33 +370,33 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
   selectTicket: async (ticketIdOrTicket: string | Ticket | null) => {
     if (!ticketIdOrTicket) {
-      set({ selectedTicket: null, selectedTicketComments: [], selectedTicketAttachments: [] })
-      return
+      set({ selectedTicket: null, selectedTicketComments: [], selectedTicketAttachments: [] });
+      return;
     }
 
-    const ticketId = typeof ticketIdOrTicket === 'string' ? ticketIdOrTicket : ticketIdOrTicket.id
+    const ticketId = typeof ticketIdOrTicket === 'string' ? ticketIdOrTicket : ticketIdOrTicket.id;
     
     try {
-      set({ loading: true, error: null })
+      set({ loading: true, error: null });
       const { data: ticket, error } = await supabase
         .from('tickets')
         .select(`
           *,
           customer:customer_id(*),
-          assigned_to:assigned_to_id(*)
+          assigned_to:assigned_to(*)
         `)
         .eq('id', ticketId)
-        .single()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
 
-      set({ selectedTicket: ticket as Ticket })
-      await get().fetchComments(ticketId)
+      set({ selectedTicket: ticket as Ticket });
+      await get().fetchComments(ticketId);
     } catch (err) {
-      const error = err as Error
-      set({ error: error.message })
+      const error = err as Error;
+      set({ error: error.message });
     } finally {
-      set({ loading: false })
+      set({ loading: false });
     }
   },
 
@@ -404,26 +422,26 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
     set({ loading: true, error: null });
     try {
+      const updates = {
+        assigned_to: currentUser.id,
+        status: 'in_progress' as const
+      };
+      
       const { error } = await supabase
         .from('tickets')
-        .update({
-          assigned_to_id: currentUser.id,
-          status: 'in_progress' as const
-        })
+        .update(updates)
         .eq('id', ticketId);
 
       if (error) throw error;
       set((state) => ({
         tickets: state.tickets.map((ticket) =>
           ticket.id === ticketId
-            ? {
-                ...ticket,
-                assigned_to_id: currentUser.id,
-                assigned_to: currentUser,
-                status: 'in_progress' as const
-              }
+            ? { ...ticket, ...updates }
             : ticket
         ),
+        selectedTicket: state.selectedTicket?.id === ticketId
+          ? { ...state.selectedTicket, ...updates }
+          : state.selectedTicket,
         loading: false
       }));
     } catch (err) {

@@ -58,14 +58,6 @@ const PRIORITY_COLORS = {
 
 const PRIORITIES: TicketPriority[] = ['normal', 'low', 'medium', 'high', 'urgent'];
 
-const priorityTextColors = {
-  urgent: 'text-ember-orange',
-  high: 'text-ember-orange',
-  medium: 'text-lodge-brown',
-  low: 'text-pine-green',
-  normal: 'text-pine-green',
-} as const;
-
 interface TicketFormProps {
   onSuccess?: (ticketId: string) => void;
 }
@@ -92,17 +84,23 @@ export function TicketForm({ onSuccess }: TicketFormProps) {
       }
 
       // Create ticket
-      const ticketId = await createTicket({
+      const ticket = await createTicket({
         subject: data.subject,
         description: data.description,
         priority: data.priority,
-        created_by: user.data.user.id,
+        customer_id: user.data.user.id,
+        tags: [],
+        metadata: {},
       });
+
+      if (!ticket) {
+        return; // Error will be handled by the store's error state
+      }
 
       // Upload attachments if any
       if (files.length > 0) {
         await Promise.all(
-          files.map((file) => uploadAttachment(ticketId, file))
+          files.map((file) => uploadAttachment(ticket.id, file))
         );
       }
 
@@ -111,7 +109,7 @@ export function TicketForm({ onSuccess }: TicketFormProps) {
       setFiles([]);
 
       // Call success callback if provided
-      onSuccess?.(ticketId);
+      onSuccess?.(ticket.id);
     } catch (err) {
       console.error('Failed to create ticket:', err);
     }

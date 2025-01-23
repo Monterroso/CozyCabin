@@ -320,7 +320,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       
       // 1. Get attachment info
       const { data: attachment, error: fetchError } = await supabase
-        .from('ticket_attachments')
+        .from('ticket-attachments')
         .select()
         .eq('id', id)
         .single();
@@ -336,7 +336,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
       // 3. Delete record
       const { error } = await supabase
-        .from('ticket_attachments')
+        .from('ticket-attachments')
         .delete()
         .eq('id', id);
 

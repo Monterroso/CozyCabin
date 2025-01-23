@@ -10,7 +10,6 @@ import { TicketForm } from '@/components/tickets/creation/TicketForm';
 import { useTicketStore } from '@/stores/ticketStore';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { CreateTicketForm } from '@/components/tickets/CreateTicketForm';
 
 export default function CreateTicketPage() {
   const navigate = useNavigate();
@@ -59,7 +58,7 @@ export default function CreateTicketPage() {
         </div>
 
         <div className="max-w-2xl">
-          <CreateTicketForm />
+          <TicketForm onSuccess={onSuccess} />
         </div>
       </main>
     </DashboardLayout>

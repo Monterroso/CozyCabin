@@ -99,7 +99,7 @@ const CatchAllRedirect = () => {
 }
 
 export const routes: AppRoute[] = [
-  // Public Routes
+  // Auth Routes
   {
     path: "/auth/login",
     element: LoginPage,

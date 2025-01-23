@@ -3,27 +3,23 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import type { AppRoute } from "./config";
 
 /**
- * Recursively wraps protected routes with AuthGuard component
+ * Recursively wraps all routes with AuthGuard component
  */
 export function wrapProtectedRoutes(routes: AppRoute[]): AppRoute[] {
   return routes.map((route) => {
     // Clone the route to avoid mutating the original
     const newRoute = { ...route };
-
-    // If the route is protected, wrap it with AuthGuard
-    if (route.protected) {
-      const OriginalComponent = route.element;
-      
-      // Create a wrapper component that uses AuthGuard
-      newRoute.element = function ProtectedComponent(props: Record<string, unknown>) {
-        const element = createElement(OriginalComponent as ComponentType, props);
-        return createElement(AuthGuard, { 
-          children: element,
-          requireAuth: true,
-          allowedRoles: route.allowedRoles 
-        });
-      };
-    }
+    const OriginalComponent = route.element;
+    
+    // Create a wrapper component that uses AuthGuard
+    newRoute.element = function WrappedComponent(props: Record<string, unknown>) {
+      const element = createElement(OriginalComponent as ComponentType, props);
+      return createElement(AuthGuard, { 
+        children: element,
+        requireAuth: !!route.protected, // Convert undefined/false to false, true to true
+        allowedRoles: route.allowedRoles 
+      });
+    };
 
     // Recursively wrap children if they exist
     if (route.children) {
@@ -35,7 +31,7 @@ export function wrapProtectedRoutes(routes: AppRoute[]): AppRoute[] {
 }
 
 /**
- * Creates the final route configuration by applying component props and wrapping protected routes
+ * Creates the final route configuration by applying component props and wrapping routes
  */
 export function createRouteConfig(routes: AppRoute[]): AppRoute[] {
   return wrapProtectedRoutes(routes).map((route) => {

@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
+import type { UserRole } from '@/lib/types/supabase';
 
 export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'agent' | 'customer';
+  role: UserRole;
 }
 
 // Core auth state
@@ -23,7 +24,7 @@ interface AuthState {
 interface AuthActions {
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, role?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
@@ -34,6 +35,16 @@ interface ProfileActions {
   updateProfile: (updates: Partial<Omit<UserProfile, 'id'>>) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
+
+// Helper function to transform raw user data into our UserProfile format
+const transformUserToProfile = (user: User): UserProfile => {
+  return {
+    id: user.id,
+    email: user.email ?? '',
+    name: user.user_metadata.full_name ?? '',
+    role: user.user_metadata.role as UserRole ?? 'customer', // Type assertion here
+  };
+};
 
 export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((set, get) => {
   let authListener: (() => void) | null = null;
@@ -57,16 +68,30 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
     console.log('[AuthStore] Auth state changed:', session ? 'Session exists' : 'No session');
     if (session?.user) {
       try {
-        const profile = await fetchProfile(session.user.id);
+        const user = session.user as User;
+        const profile = await fetchProfile(user.id);
+        
+        // Update user metadata if needed
+        if (!user.user_metadata.role || !user.user_metadata.full_name) {
+          await supabase.auth.updateUser({
+            data: {
+              role: profile.role,
+              full_name: profile.name,
+            },
+          });
+        }
+
         set({
-          user: session.user,
+          user,
           session,
           profile,
           isLoading: false,
+          error: null,
         });
       } catch (error) {
+        console.error('[AuthStore] Error handling auth state change:', error);
         set({
-          user: session.user,
+          user: session.user as User,
           session,
           profile: null,
           error: 'Failed to fetch user profile',
@@ -79,6 +104,7 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
         session: null,
         profile: null,
         isLoading: false,
+        error: null,
       });
     }
   };
@@ -143,7 +169,7 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
       }
     },
 
-    signUp: async (email: string, password: string, name: string) => {
+    signUp: async (email: string, password: string, name: string, role: UserRole = 'customer') => {
       try {
         set({ isLoading: true, error: null });
         const { data, error } = await supabase.auth.signUp({
@@ -151,7 +177,8 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
           password,
           options: {
             data: {
-              full_name: name  // Pass name in user metadata for the trigger
+              full_name: name,
+              role: role,  // Use the provided role or default to customer
             }
           }
         });
@@ -219,17 +246,39 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
 
       try {
         set({ isLoading: true, error: null });
-        const { data, error } = await supabase
+        
+        // Update profile in database
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .update(updates)
           .eq('id', user.id)
           .select()
           .single();
 
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Update user metadata to keep it in sync
+        const { error: userError } = await supabase.auth.updateUser({
+          data: {
+            full_name: updates.name,
+            role: updates.role,
+          }
+        });
+
+        if (userError) throw userError;
+
         set({ 
-          profile: data as UserProfile,
-          isLoading: false 
+          profile: profileData as UserProfile,
+          user: {
+            ...user,
+            user_metadata: {
+              ...user.user_metadata,
+              full_name: updates.name ?? user.user_metadata.full_name,
+              role: updates.role ?? user.user_metadata.role,
+            }
+          },
+          isLoading: false,
+          error: null,
         });
       } catch (error) {
         set({
@@ -246,7 +295,28 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
       try {
         set({ isLoading: true, error: null });
         const profile = await fetchProfile(user.id);
-        set({ profile, isLoading: false });
+        
+        // Also refresh user metadata to keep it in sync
+        await supabase.auth.updateUser({
+          data: {
+            full_name: profile.name,
+            role: profile.role,
+          }
+        });
+
+        set({ 
+          profile,
+          user: {
+            ...user,
+            user_metadata: {
+              ...user.user_metadata,
+              full_name: profile.name,
+              role: profile.role,
+            }
+          },
+          isLoading: false,
+          error: null,
+        });
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Failed to refresh profile',

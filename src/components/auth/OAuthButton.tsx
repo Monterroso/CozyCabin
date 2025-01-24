@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/hooks/useAuth";
 import { Github } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,7 @@ interface OAuthButtonProps {
 }
 
 export function OAuthButton({ provider, className }: OAuthButtonProps) {
-  const { loginWithProvider, isLoading } = useAuthStore();
+  const { loginWithProvider, isLoading } = useAuth();
 
   const providerConfig = {
     google: {

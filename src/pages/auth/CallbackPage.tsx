@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -9,7 +9,7 @@ export default function CallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { error, session } = useAuthStore();
+  const { error, session, isLoading } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -65,7 +65,9 @@ export default function CallbackPage() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <Loader2 className="mx-auto h-8 w-8 animate-spin text-lodge-brown" />
-        <p className="mt-4 text-pine-green-600">Completing authentication...</p>
+        <p className="mt-4 text-pine-green-600">
+          {isLoading ? "Completing authentication..." : "Redirecting..."}
+        </p>
       </div>
     </div>
   );

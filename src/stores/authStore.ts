@@ -24,6 +24,7 @@ interface AuthState {
 interface AuthActions {
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  loginWithProvider: (provider: 'google' | 'github') => Promise<void>;
   signUp: (email: string, password: string, name: string, role?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -164,6 +165,32 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Failed to login',
+          isLoading: false,
+        });
+      }
+    },
+
+    loginWithProvider: async (provider: 'google' | 'github') => {
+      try {
+        set({ isLoading: true, error: null });
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        });
+
+        if (error) throw error;
+        
+        // Note: We don't need to call handleAuthStateChange here
+        // The auth state listener will handle the session update after redirect
+      } catch (error) {
+        set({
+          error: error instanceof Error ? error.message : `Failed to login with ${provider}`,
           isLoading: false,
         });
       }

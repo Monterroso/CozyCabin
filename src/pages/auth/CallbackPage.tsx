@@ -1,27 +1,27 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function CallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { error, session } = useAuthStore();
 
   useEffect(() => {
-    const handleEmailConfirmation = async () => {
+    const handleCallback = async () => {
       try {
-        // Get the auth code from the URL
+        // Check if this is an email verification callback
         const code = searchParams.get('code');
         const next = searchParams.get('next') || '/';
 
         if (code) {
-          // Exchange the code for a session
+          // Handle email verification
           const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (error) {
-            throw error;
-          }
+          if (error) throw error;
 
           toast({
             title: 'Email verified',
@@ -29,25 +29,44 @@ export default function CallbackPage() {
           });
 
           // Redirect to the next URL or dashboard
-          navigate(next);
+          navigate(next, { replace: true });
+          return;
+        }
+
+        // Handle OAuth callback
+        if (error) {
+          navigate('/auth/login', { 
+            replace: true,
+            state: { error: 'Authentication failed. Please try again.' }
+          });
+          return;
+        }
+
+        // If we have a session from OAuth, redirect to home
+        if (session) {
+          navigate('/', { replace: true });
+          return;
         }
       } catch (error) {
-        console.error('Error verifying email:', error);
+        console.error('Error in auth callback:', error);
         toast({
-          title: 'Verification failed',
-          description: error instanceof Error ? error.message : 'Failed to verify email',
+          title: 'Authentication failed',
+          description: error instanceof Error ? error.message : 'Failed to complete authentication',
           variant: 'destructive',
         });
-        navigate('/auth/login');
+        navigate('/auth/login', { replace: true });
       }
     };
 
-    handleEmailConfirmation();
-  }, [searchParams, navigate, toast]);
+    handleCallback();
+  }, [error, session, navigate, searchParams, toast]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p className="text-muted-foreground">Verifying your email...</p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="mx-auto h-8 w-8 animate-spin text-lodge-brown" />
+        <p className="mt-4 text-pine-green-600">Completing authentication...</p>
+      </div>
     </div>
   );
 } 

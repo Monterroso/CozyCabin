@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { OAuthButton } from './OAuthButton';
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -61,72 +62,96 @@ export function LoginForm() {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-pine-green-700">Email</FormLabel>
-              <FormControl>
-                <Input 
-                  type="email" 
-                  placeholder="Enter your email"
-                  className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-ember-orange-500" />
-            </FormItem>
-          )}
+    <div className="space-y-6">
+      <div className="grid gap-4">
+        <OAuthButton 
+          provider="google"
+          className="bg-white hover:bg-gray-50 text-gray-900 border-pine-green-200"
         />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-pine-green-700">Password</FormLabel>
-              <FormControl>
-                <Input 
-                  type="password" 
-                  placeholder="Enter your password"
-                  className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-ember-orange-500" />
-            </FormItem>
-          )}
+        <OAuthButton 
+          provider="github"
+          className="bg-white hover:bg-gray-50 text-gray-900 border-pine-green-200"
         />
-        
-        {(error || authError) && (
-          <Alert variant="destructive" className="border-ember-orange-200 bg-ember-orange-50">
-            <AlertCircle className="h-4 w-4 text-ember-orange-500" />
-            <AlertTitle className="text-ember-orange-700">Error</AlertTitle>
-            <AlertDescription className="text-ember-orange-600">{error || authError}</AlertDescription>
-          </Alert>
-        )}
+      </div>
 
-        <Button
-          type="submit"
-          className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Signing in...' : 'Sign in'}
-        </Button>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-pine-green-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-pine-green-600">
+            Or continue with email
+          </span>
+        </div>
+      </div>
 
-        <p className="text-center text-sm text-pine-green-600">
-          Don't have an account?{' '}
-          <a
-            href="/auth/signup"
-            className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-pine-green-700">Email</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="email" 
+                    placeholder="Enter your email"
+                    className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-ember-orange-500" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-pine-green-700">Password</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="password" 
+                    placeholder="Enter your password"
+                    className="border-pine-green-200 focus:border-pine-green-500 focus:ring-pine-green-500"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-ember-orange-500" />
+              </FormItem>
+            )}
+          />
+          
+          {(error || authError) && (
+            <Alert variant="destructive" className="border-ember-orange-200 bg-ember-orange-50">
+              <AlertCircle className="h-4 w-4 text-ember-orange-500" />
+              <AlertTitle className="text-ember-orange-700">Error</AlertTitle>
+              <AlertDescription className="text-ember-orange-600">{error || authError}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
+            disabled={isLoading}
           >
-            Sign up
-          </a>
-        </p>
-      </form>
-    </Form>
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </Button>
+
+          <p className="text-center text-sm text-pine-green-600">
+            Don't have an account?{' '}
+            <a
+              href="/auth/signup"
+              className="font-semibold text-lodge-brown hover:text-lodge-brown-700 transition-colors"
+            >
+              Sign up
+            </a>
+          </p>
+        </form>
+      </Form>
+    </div>
   );
 } 

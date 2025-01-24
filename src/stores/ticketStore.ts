@@ -538,6 +538,9 @@ export const useTicketStore = create<TicketState>((set, get) => ({
         .in('id', missingIds);
 
       if (error) throw error;
+
+      console.log(profiles);
+      console.log("======================== ")
       
       if (profiles) {
         set((state) => ({
@@ -549,6 +552,8 @@ export const useTicketStore = create<TicketState>((set, get) => ({
             }, {} as Record<string, UserProfile>)
           }
         }));
+
+        console.log(get().userProfiles);
       }
     } catch (err) {
       console.error('[TicketStore] Error fetching profiles:', err);

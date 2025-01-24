@@ -9,7 +9,6 @@ import { Separator } from '@/components/ui/separator'
 import { formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import type { TicketStatus, TicketPriority } from '@/lib/types/ticket'
 
 const statusColorMap = {
   'open': 'bg-pine-green/20 text-pine-green',
@@ -50,6 +49,9 @@ export default function TicketDetailPage() {
       </DashboardLayout>
     )
   }
+  
+  console.log(user?.user_metadata.role);
+  console.log("========================")
 
   return (
     <DashboardLayout>
@@ -57,7 +59,7 @@ export default function TicketDetailPage() {
         <div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-lodge-brown">{selectedTicket.title}</h1>
+              <h1 className="text-3xl font-bold text-lodge-brown">{selectedTicket.subject}</h1>
               <div className="mt-2 flex items-center gap-2 text-sm text-twilight-gray">
                 <span>Ticket #{selectedTicket.id}</span>
                 <span>•</span>
@@ -79,7 +81,7 @@ export default function TicketDetailPage() {
         <Separator className="bg-twilight-gray/20" />
 
         {/* Show AgentTicketManagement only for agents */}
-        {user?.role === 'agent' && (
+        {user?.user_metadata.role === 'agent' && (
           <>
             <AgentTicketManagement ticket={selectedTicket} />
             <Separator className="bg-twilight-gray/20" />

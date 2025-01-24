@@ -29,13 +29,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
 import { useAuthStore } from '@/stores/authStore'
-import { 
-  Ticket, 
-  TicketStatus, 
-  TicketPriority,
-  TicketStatusEnum,
-  TicketPriorityEnum
-} from '@/lib/types/ticket'
+import { type Ticket, STATUS_COLORS, PRIORITY_COLORS } from '@/lib/types/ticket'
+import { type TicketStatus, type TicketPriority } from '@/lib/types/supabase'
 import { cn } from '@/lib/utils'
 
 const internalNoteSchema = z.object({
@@ -43,8 +38,8 @@ const internalNoteSchema = z.object({
 })
 
 const ticketUpdateSchema = z.object({
-  status: z.enum(['open', 'in_progress', 'pending', 'closed'] as const),
-  priority: z.enum(['urgent', 'high', 'normal', 'low'] as const),
+  status: z.enum(['open', 'in_progress', 'pending', 'closed', 'solved'] as const),
+  priority: z.enum(['urgent', 'high', 'normal', 'low', 'medium'] as const),
   internal_note: z.string().optional(),
 })
 
@@ -63,8 +58,8 @@ export function AgentTicketManagement({ ticket }: Props) {
   const updateForm = useForm<TicketUpdateForm>({
     resolver: zodResolver(ticketUpdateSchema),
     defaultValues: {
-      status: ticket.status,
-      priority: ticket.priority,
+      status: ticket.status as TicketStatus,
+      priority: ticket.priority as TicketPriority,
       internal_note: '',
     },
   })

@@ -1,6 +1,7 @@
+// This file already uses useAuth and doesn't need modifications per the edit plan
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import type { User } from '@supabase/supabase-js'
 import type { UserRole } from '@/lib/types/supabase'
 
@@ -15,7 +16,7 @@ interface AuthGuardProps {
 export function AuthGuard({ children, requireAuth = true, allowedRoles }: AuthGuardProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, profile, isLoading, initialized, initialize, cleanup } = useAuthStore()
+  const { user, profile, isLoading, initialized, initialize, cleanup } = useAuth()
 
   // Initialize auth state only once when component mounts
   useEffect(() => {

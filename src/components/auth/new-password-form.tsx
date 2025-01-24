@@ -15,11 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { newPasswordSchema, type NewPasswordFormData } from '@/lib/validations/auth';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 export const NewPasswordForm: React.FC = () => {
   const navigate = useNavigate();
-  const { updatePassword, loading, error } = useAuthStore();
+  const { updatePassword, isLoading, error } = useAuth();
   
   const form = useForm<NewPasswordFormData>({
     resolver: zodResolver(newPasswordSchema),
@@ -102,9 +102,9 @@ export const NewPasswordForm: React.FC = () => {
         <Button
           type="submit"
           className="w-full bg-lodge-brown hover:bg-lodge-brown-600 text-white"
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? 'Updating password...' : 'Update password'}
+          {isLoading ? 'Updating password...' : 'Update password'}
         </Button>
 
         <p className="text-center text-sm text-pine-green-600">

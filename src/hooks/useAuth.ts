@@ -8,12 +8,16 @@ export interface UseAuthReturn {
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
+  initialized: boolean;
+  initialize: () => Promise<void>;
+  cleanup: () => void;
   
   // Auth methods
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   
   // Profile methods
   updateProfile: (updates: Partial<Omit<UserProfile, 'id'>>) => Promise<void>;
@@ -26,11 +30,14 @@ export function useAuth(): UseAuthReturn {
     profile,
     isLoading,
     error,
-    initialized: isInitialized,
+    initialized,
+    initialize,
+    cleanup,
     login,
     signUp,
     logout,
     resetPassword,
+    updatePassword,
     updateProfile,
     refreshProfile,
   } = useAuthStore();
@@ -40,11 +47,15 @@ export function useAuth(): UseAuthReturn {
     profile,
     isLoading,
     error,
-    isInitialized,
+    isInitialized: initialized,
+    initialized,
+    initialize,
+    cleanup,
     login,
     signUp,
     logout,
     resetPassword,
+    updatePassword,
     updateProfile,
     refreshProfile,
   };

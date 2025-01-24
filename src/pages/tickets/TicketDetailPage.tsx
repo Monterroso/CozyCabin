@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useTicketStore } from '@/stores/ticketStore'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { AgentTicketManagement } from '@/components/tickets/AgentTicketManagement'
 import { CommentList } from '@/components/tickets/comments/CommentList'
 import { Separator } from '@/components/ui/separator'
@@ -28,7 +28,7 @@ const priorityColorMap = {
 
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { user } = useAuthStore()
+  const { user } = useAuth()
   const { selectedTicket, selectTicket, loading } = useTicketStore()
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function TicketDetailPage() {
     )
   }
   
-  console.log(user?.user_metadata.role);
+  console.log(user);
   console.log("========================")
 
   return (

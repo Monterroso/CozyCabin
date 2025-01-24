@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signUpSchema, type SignUpFormData } from '@/lib/validations/auth';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -29,7 +29,7 @@ interface SignUpFormProps {
 export const SignUpForm: React.FC<SignUpFormProps> = ({ inviteData }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signUp, error: authError, isLoading } = useAuthStore();
+  const { signUp, error: authError, isLoading } = useAuth();
   
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),

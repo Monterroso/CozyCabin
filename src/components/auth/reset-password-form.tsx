@@ -15,11 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations/auth';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
+// This section already uses useAuth and doesn't need modification
 export const ResetPasswordForm: React.FC = () => {
   const navigate = useNavigate();
-  const { resetPassword, isLoading, error } = useAuthStore();
+  const { resetPassword, isLoading, error } = useAuth();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   
   const form = useForm<ResetPasswordFormData>({

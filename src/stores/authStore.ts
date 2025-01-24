@@ -26,6 +26,7 @@ interface AuthActions {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   cleanup: () => void;
 }
 
@@ -190,6 +191,22 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Failed to reset password',
+          isLoading: false,
+        });
+      }
+    },
+
+    updatePassword: async (password: string) => {
+      try {
+        set({ isLoading: true, error: null });
+        const { error } = await supabase.auth.updateUser({
+          password: password
+        });
+        if (error) throw error;
+        set({ isLoading: false });
+      } catch (error) {
+        set({
+          error: error instanceof Error ? error.message : 'Failed to update password',
           isLoading: false,
         });
       }

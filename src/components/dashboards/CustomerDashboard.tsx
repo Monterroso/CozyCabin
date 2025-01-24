@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
 import { ticketStatuses } from '@/lib/schemas/ticket'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useTicketStore } from '@/stores/ticketStore'
 
 type TicketStatus = typeof ticketStatuses[number]
@@ -63,7 +63,7 @@ export function CustomerDashboard() {
   const [recentTickets, setRecentTickets] = useState<RecentTicket[]>([])
   const { toast } = useToast()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user } = useAuth()
   const { tickets, fetchTickets, loading, error } = useTicketStore()
 
   useEffect(() => {

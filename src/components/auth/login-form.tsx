@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -21,7 +21,7 @@ import { AlertCircle } from "lucide-react";
 export function LoginForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login, error: authError, isLoading } = useAuthStore();
+  const { login, error: authError, isLoading } = useAuth();
   
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),

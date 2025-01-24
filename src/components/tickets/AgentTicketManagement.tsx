@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { type Ticket, STATUS_COLORS, PRIORITY_COLORS } from '@/lib/types/ticket'
 import { type TicketStatus, type TicketPriority } from '@/lib/types/supabase'
 import { cn } from '@/lib/utils'
@@ -53,7 +53,7 @@ interface Props {
 export function AgentTicketManagement({ ticket }: Props) {
   const [activeTab, setActiveTab] = useState<'details' | 'notes'>('details')
   const { updateTicket, addComment } = useTicketStore()
-  const { user } = useAuthStore()
+  const { user } = useAuth()
 
   const updateForm = useForm<TicketUpdateForm>({
     resolver: zodResolver(ticketUpdateSchema),

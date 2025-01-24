@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
-import type { TicketPriority, Ticket } from '@/types'
+import type { TicketPriority } from '@/lib/types/supabase'
 import { formatDistanceToNow } from 'date-fns'
 
 export function TicketList() {

@@ -1,6 +1,6 @@
 /**
- * AgentDashboard.tsx
- * Main dashboard view for support agents to manage tickets and view their performance
+ * AgentOverviewPage.tsx
+ * Main overview page for support agents to manage tickets and view their performance
  */
 
 import { useEffect } from 'react'
@@ -13,7 +13,7 @@ import { Clock, MessageSquare } from 'lucide-react'
 import { AgentTicketQueue } from '@/components/tickets/AgentTicketQueue'
 import { useTicketStore } from '@/stores/ticketStore'
 
-export default function AgentDashboard() {
+export default function AgentOverviewPage() {
   const { agentStats, fetchAgentDashboardData, fetchTickets } = useTicketStore()
   const { toast } = useToast()
   const navigate = useNavigate()

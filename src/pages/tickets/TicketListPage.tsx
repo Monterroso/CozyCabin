@@ -4,16 +4,17 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { useTicketStore } from '@/stores/ticketStore'
 import { TicketList } from '@/components/tickets/TicketList'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function TicketListPage() {
   const navigate = useNavigate()
   const { fetchTickets, loading } = useTicketStore()
+  const { user } = useAuth()
 
   useEffect(() => {
-    // Initial fetch of tickets
-    fetchTickets()
-    // Empty dependency array since we only want this to run once on mount
-  }, []) // Removed fetchTickets from dependencies
+    if (!user) return
+    fetchTickets({ customer_id: user.id })
+  }, [user])
 
   return (
     <DashboardLayout>

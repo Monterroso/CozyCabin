@@ -1,22 +1,34 @@
 /**
- * CustomerDashboard.tsx
- * Main dashboard view for customers to see their tickets and activity
+ * CustomerOverviewPage.tsx
+ * Main overview page for customers to see their tickets and activity
  */
 
+import { useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
-import {
-  TicketIcon,
-  Clock,
-  MessageSquare,
-  Settings2,
-} from 'lucide-react'
 import { Plus } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useTicketStore } from '@/stores/ticketStore'
 
-export default function CustomerDashboard() {
+export default function CustomerOverviewPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const { tickets, fetchTickets, loading } = useTicketStore()
+
+  useEffect(() => {
+    if (user) {
+      fetchTickets({ customer_id: user.id })
+    }
+  }, [user])
+
+  const activeTickets = tickets.filter(t => t.status === 'open').length
+  const recentTickets = tickets.filter(t => {
+    const updated = new Date(t.updated_at || t.created_at)
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    return updated > dayAgo
+  }).length
 
   return (
     <DashboardLayout>
@@ -41,7 +53,7 @@ export default function CustomerDashboard() {
               <CardTitle>Active Tickets</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold" aria-label="3 active tickets">3</p>
+              <p className="text-3xl font-bold" aria-label={`${activeTickets} active tickets`}>{activeTickets}</p>
               <p className="text-sm text-muted-foreground">Open tickets requiring attention</p>
             </CardContent>
           </Card>
@@ -51,7 +63,7 @@ export default function CustomerDashboard() {
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold" aria-label="2 recent updates">2</p>
+              <p className="text-3xl font-bold" aria-label={`${recentTickets} recent updates`}>{recentTickets}</p>
               <p className="text-sm text-muted-foreground">Updates in the last 24 hours</p>
             </CardContent>
           </Card>
@@ -77,40 +89,33 @@ export default function CustomerDashboard() {
                 role="list"
                 aria-label="Recent tickets list"
               >
-                <div 
-                  role="listitem"
-                  className="flex items-center justify-between p-4"
-                >
-                  <div>
-                    <h3 className="font-medium">Login Issue with Mobile App</h3>
-                    <p className="text-sm text-muted-foreground">Updated 2 hours ago</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => navigate('/tickets/1')}
-                    aria-label="View ticket: Login Issue with Mobile App"
+                {loading ? (
+                  <div className="p-4 text-center text-muted-foreground">Loading tickets...</div>
+                ) : tickets.slice(0, 5).map((ticket) => (
+                  <div 
+                    key={ticket.id}
+                    role="listitem"
+                    className="flex items-center justify-between p-4"
                   >
-                    View
-                  </Button>
-                </div>
-                <div 
-                  role="listitem"
-                  className="flex items-center justify-between p-4"
-                >
-                  <div>
-                    <h3 className="font-medium">Payment Failed</h3>
-                    <p className="text-sm text-muted-foreground">Updated 5 hours ago</p>
+                    <div>
+                      <h3 className="font-medium">{ticket.subject}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Updated {new Date(ticket.updated_at || ticket.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      aria-label={`View ticket: ${ticket.subject}`}
+                    >
+                      View
+                    </Button>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => navigate('/tickets/2')}
-                    aria-label="View ticket: Payment Failed"
-                  >
-                    View
-                  </Button>
-                </div>
+                ))}
+                {!loading && tickets.length === 0 && (
+                  <div className="p-4 text-center text-muted-foreground">No tickets found</div>
+                )}
               </div>
             </CardContent>
           </Card>

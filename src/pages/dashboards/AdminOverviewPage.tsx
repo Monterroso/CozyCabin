@@ -1,6 +1,6 @@
 /**
- * AdminDashboard.tsx
- * Main dashboard view for administrators to oversee the entire support system
+ * AdminOverviewPage.tsx
+ * Main overview page for administrators to oversee the entire support system
  */
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -16,7 +16,7 @@ import {
   Settings2,
 } from 'lucide-react'
 
-export default function AdminDashboard() {
+export default function AdminOverviewPage() {
   const navigate = useNavigate()
 
   return (

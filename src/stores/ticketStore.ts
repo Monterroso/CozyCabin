@@ -13,7 +13,7 @@ type TicketAttachment = Database['public']['Tables']['ticket_attachments']['Row'
 interface TicketFilters {
   status?: TicketStatus;
   priority?: TicketPriority;
-  assignedTo?: string | null;
+  assigned_to?: string | null;
   customer_id?: string;
   search?: string;
 }
@@ -106,8 +106,12 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       if (filters.priority) {
         query = query.eq('priority', filters.priority);
       }
-      if (filters.assignedTo !== undefined) {
-        query = query.eq('assigned_to', filters.assignedTo);
+      if (filters.assigned_to !== undefined) {
+        if (filters.assigned_to === null) {
+          query = query.is('assigned_to', null);
+        } else {
+          query = query.eq('assigned_to', filters.assigned_to);
+        }
       }
       if (filters.customer_id) {
         query = query.eq('customer_id', filters.customer_id);
@@ -176,6 +180,33 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   updateTicket: async (id: string, updates: TicketUpdate) => {
     try {
       set({ loading: true, error: null });
+ ////////////////////////////     
+      // Get current user and their role
+      const currentUser = useAuthStore.getState().user;
+      const userProfile = useAuthStore.getState().profile;
+      
+      if (!currentUser || !userProfile) {
+        throw new Error('User must be logged in to update a ticket');
+      }
+
+      // Get the current ticket to check permissions
+      const { data: ticket, error: fetchError } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Check permissions
+      const isAdmin = userProfile.role === 'admin';
+      const isAssignedAgent = userProfile.role === 'agent' && ticket.assigned_to === currentUser.id;
+      const isCustomerOwner = userProfile.role === 'customer' && ticket.customer_id === currentUser.id;
+
+      if (!isAdmin && !isAssignedAgent && !isCustomerOwner) {
+        throw new Error('You do not have permission to update this ticket');
+      }
+////////////////////////////
       const { error } = await supabase
         .from('tickets')
         .update(updates)
@@ -445,7 +476,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
     await get().fetchTickets({
       ...get().filters,
-      assignedTo: currentUser.id,
+      assigned_to: currentUser.id,
       status: 'open',
     });
   },

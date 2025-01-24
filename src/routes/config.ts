@@ -10,13 +10,16 @@ import SignUpPage from "@/pages/auth/SignUpPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import CallbackPage from "@/pages/auth/CallbackPage";
 
-// Customer Pages
+// Overview Pages
+import CustomerOverviewPage from "@/pages/dashboards/CustomerOverviewPage";
+import AgentOverviewPage from "@/pages/dashboards/AgentOverviewPage";
+import AdminOverviewPage from "@/pages/dashboards/AdminOverviewPage";
+
+// Ticket Pages
 import TicketListPage from "@/pages/tickets/TicketListPage";
+import AgentTicketListPage from "@/pages/tickets/AgentTicketListPage";
 import CreateTicketPage from "@/pages/tickets/CreateTicketPage";
 import TicketDetailPage from "@/pages/tickets/TicketDetailPage";
-
-// Agent Pages
-import AgentDashboard from "@/pages/dashboards/AgentDashboard";
 
 // Admin Pages
 const InvitesPage = lazy(() => import("@/pages/admin/InvitesPage"));
@@ -36,6 +39,12 @@ const protectedRoutes: AppRoute[] = [
   // Customer Routes
   {
     path: "/dashboard/customer",
+    element: CustomerOverviewPage,
+    protected: true,
+    allowedRoles: ['customer'],
+  },
+  {
+    path: "/tickets",
     element: TicketListPage,
     protected: true,
     allowedRoles: ['customer'],
@@ -55,19 +64,19 @@ const protectedRoutes: AppRoute[] = [
   // Agent Routes
   {
     path: "/dashboard/agent",
-    element: AgentDashboard,
+    element: AgentOverviewPage,
     protected: true,
     allowedRoles: ['agent', 'admin'],
   },
   {
-    path: "/dashboard/agent/tickets",
-    element: TicketListPage,
+    path: "/tickets/assigned",
+    element: AgentTicketListPage,
     protected: true,
     allowedRoles: ['agent', 'admin'],
   },
   {
-    path: "/dashboard/agent/tickets/:id",
-    element: TicketDetailPage,
+    path: "/tickets/unassigned",
+    element: AgentTicketListPage,
     protected: true,
     allowedRoles: ['agent', 'admin'],
   },
@@ -75,7 +84,7 @@ const protectedRoutes: AppRoute[] = [
   // Admin Routes
   {
     path: "/dashboard/admin",
-    element: InvitesPage,
+    element: AdminOverviewPage,
     protected: true,
     allowedRoles: ['admin'],
   },

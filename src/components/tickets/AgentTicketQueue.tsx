@@ -179,7 +179,7 @@ export function AgentTicketQueue() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/dashboard/agent/tickets/${ticket.id}`)}
+                    onClick={() => navigate(`/tickets/${ticket.id}`)}
                   >
                     View Details
                   </Button>

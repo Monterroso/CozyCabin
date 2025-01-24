@@ -180,7 +180,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   updateTicket: async (id: string, updates: TicketUpdate) => {
     try {
       set({ loading: true, error: null });
- ////////////////////////////     
+      
       // Get current user and their role
       const currentUser = useAuthStore.getState().user;
       const userProfile = useAuthStore.getState().profile;
@@ -206,7 +206,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       if (!isAdmin && !isAssignedAgent && !isCustomerOwner) {
         throw new Error('You do not have permission to update this ticket');
       }
-////////////////////////////
+
       const { error } = await supabase
         .from('tickets')
         .update(updates)

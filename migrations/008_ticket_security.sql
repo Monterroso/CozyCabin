@@ -20,7 +20,7 @@ USING (
 
 CREATE POLICY "Tickets can be updated by their customers" ON tickets
 FOR UPDATE TO authenticated
-USING (customer_id = auth.uid() AND status NOT IN ('closed', 'resolved'));
+USING (customer_id = auth.uid() AND status NOT IN ('closed', 'solved'));
 
 -- Insert policy
 CREATE POLICY "Tickets can be created by authenticated users" ON tickets

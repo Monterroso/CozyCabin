@@ -3,6 +3,7 @@ import type { UserRole } from "@/lib/types/supabase";
 import { Navigate } from "react-router-dom";
 import type { ComponentType, LazyExoticComponent } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { adminRoutes } from "./admin";
 
 // Auth Pages
 import LoginPage from "@/pages/auth/LoginPage";
@@ -88,6 +89,7 @@ const protectedRoutes: AppRoute[] = [
     protected: true,
     allowedRoles: ['admin'],
   },
+  ...adminRoutes, // Spread the admin routes directly
 ];
 
 // Create redirect components

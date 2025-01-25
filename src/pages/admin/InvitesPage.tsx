@@ -25,12 +25,17 @@ import { inviteSchema, type Invite } from "@/lib/types/invites";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PostgrestError } from "@supabase/supabase-js";
 
+type FormData = {
+  email: string;
+  role: "admin" | "agent";
+};
+
 export default function InvitesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
 
-  const form = useForm({
+  const form = useForm<FormData>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       email: "",

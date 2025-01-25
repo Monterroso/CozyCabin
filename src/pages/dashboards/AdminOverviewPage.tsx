@@ -31,12 +31,12 @@ export default function AdminOverviewPage() {
         <Button
           variant="outline"
           className="h-20 justify-start gap-4"
-          onClick={() => navigate('/admin/users/new')}
+          onClick={() => navigate('/admin/invites')}
         >
           <UserPlus className="h-5 w-5" />
           <div className="text-left">
-            <div className="font-semibold">Add Agent</div>
-            <div className="text-xs text-muted-foreground">Create new support agent</div>
+            <div className="font-semibold">Invite Users</div>
+            <div className="text-xs text-muted-foreground">Send invites to new users</div>
           </div>
         </Button>
 

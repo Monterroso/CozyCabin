@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -20,20 +20,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { createInvite, getInvites } from "@/lib/api/invites";
-import { inviteSchema, type Invite } from "@/lib/types/invites";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PostgrestError } from "@supabase/supabase-js";
+import { inviteSchema, type Invite, type CreateInviteRequest } from "@/lib/types/invites";
+import { useInviteStore } from "@/stores/inviteStore";
+import type { z } from "zod";
 
-type FormData = {
-  email: string;
-  role: "admin" | "agent";
-};
+type FormData = z.infer<typeof inviteSchema>;
 
 export default function InvitesPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
+  const { invites, loading, error, fetchInvites, createInvite } = useInviteStore();
 
   const form = useForm<FormData>({
     resolver: zodResolver(inviteSchema),
@@ -43,33 +39,26 @@ export default function InvitesPage() {
     },
   });
 
-  const { data: invites, isLoading } = useQuery({
-    queryKey: ["invites"],
-    queryFn: getInvites,
-  });
+  useEffect(() => {
+    fetchInvites();
+  }, [fetchInvites]);
 
-  const createInviteMutation = useMutation({
-    mutationFn: createInvite,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invites"] });
+  const onSubmit = form.handleSubmit(async (data: FormData) => {
+    try {
+      await createInvite(data);
       setIsCreating(false);
       form.reset();
       toast({
         title: "Invite sent",
         description: "The invite has been sent successfully.",
       });
-    },
-    onError: (error: PostgrestError) => {
+    } catch (err) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error || "Failed to send invite",
         variant: "destructive",
       });
-    },
-  });
-
-  const onSubmit = form.handleSubmit((data) => {
-    createInviteMutation.mutate(data);
+    }
   });
 
   return (
@@ -134,7 +123,7 @@ export default function InvitesPage() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createInviteMutation.isPending}
+                  disabled={loading}
                 >
                   Send Invite
                 </Button>
@@ -144,7 +133,7 @@ export default function InvitesPage() {
         </Card>
       )}
 
-      {isLoading ? (
+      {loading ? (
         <div>Loading...</div>
       ) : (
         <div className="space-y-4">

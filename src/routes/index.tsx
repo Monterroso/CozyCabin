@@ -7,7 +7,6 @@ import { createElement } from "react";
 import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import { routes } from "./config";
 import { createRouteConfig } from "./utils";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import type { AppRoute } from "./config";
 
@@ -27,17 +26,7 @@ function convertToRouteObject(route: AppRoute): RouteObject {
 }
 
 // Process the routes with our configuration utility
-const processedRoutes = createRouteConfig(routes).map(route => {
-  // Special handling for admin routes to inject the layout
-  if (route.path === "/admin") {
-    return {
-      ...convertToRouteObject(route),
-      element: <AdminLayout />,
-    };
-  }
-
-  return convertToRouteObject(route);
-});
+const processedRoutes = createRouteConfig(routes).map(convertToRouteObject);
 
 const router = createBrowserRouter(processedRoutes);
 

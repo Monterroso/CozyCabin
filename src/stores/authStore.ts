@@ -8,6 +8,11 @@ export interface UserProfile {
   email: string;
   name: string;
   role: UserRole;
+  full_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
 }
 
 // Core auth state
@@ -44,6 +49,11 @@ const transformUserToProfile = (user: User): UserProfile => {
     email: user.email ?? '',
     name: user.user_metadata.full_name ?? '',
     role: user.user_metadata.role as UserRole ?? 'customer', // Type assertion here
+    full_name: user.user_metadata.full_name,
+    avatar_url: user.user_metadata.avatar_url,
+    created_at: user.user_metadata.created_at,
+    updated_at: user.user_metadata.updated_at,
+    is_active: user.user_metadata.is_active,
   };
 };
 
@@ -349,6 +359,59 @@ export const useAuthStore = create<AuthState & AuthActions & ProfileActions>((se
           error: error instanceof Error ? error.message : 'Failed to refresh profile',
           isLoading: false,
         });
+      }
+    },
+
+    updateUserRole: async (userId: string, role: 'admin' | 'agent') => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          throw new Error('Not authenticated');
+        }
+
+        // First update the profile in the database
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role })
+          .eq('id', userId);
+
+        if (profileError) {
+          throw new Error('Failed to update profile role');
+        }
+
+        // Then update the user metadata via the edge function
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-role`;
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            role,
+          }),
+        });
+
+        if (!response.ok) {
+          const responseData = await response.json();
+          throw new Error(responseData.error || 'Failed to update user role');
+        }
+
+        // Refresh the session to get updated metadata
+        await supabase.auth.refreshSession();
+        
+      } catch (err) {
+        console.error('Error updating user role:', err);
+        const error = err as Error;
+        set({ error: error.message });
+        throw error;
+      } finally {
+        set({ isLoading: false });
       }
     },
   };

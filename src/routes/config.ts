@@ -1,9 +1,11 @@
 import { lazy, createElement } from "react";
-import type { UserRole } from "@/lib/types/supabase";
+import type { Database } from "@/lib/types/supabase";
 import { Navigate } from "react-router-dom";
 import type { ComponentType, LazyExoticComponent } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { adminRoutes } from "./admin";
+
+type UserRole = Database["public"]["Enums"]["user_role"];
 
 // Auth Pages
 import LoginPage from "@/pages/auth/LoginPage";
@@ -14,16 +16,12 @@ import CallbackPage from "@/pages/auth/CallbackPage";
 // Overview Pages
 import CustomerOverviewPage from "@/pages/dashboards/CustomerOverviewPage";
 import AgentOverviewPage from "@/pages/dashboards/AgentOverviewPage";
-import AdminOverviewPage from "@/pages/dashboards/AdminOverviewPage";
 
 // Ticket Pages
 import TicketListPage from "@/pages/tickets/TicketListPage";
 import AgentTicketListPage from "@/pages/tickets/AgentTicketListPage";
 import CreateTicketPage from "@/pages/tickets/CreateTicketPage";
 import TicketDetailPage from "@/pages/tickets/TicketDetailPage";
-
-// Admin Pages
-const InvitesPage = lazy(() => import("@/pages/admin/InvitesPage"));
 
 export interface AppRoute {
   path: string;
@@ -82,14 +80,8 @@ const protectedRoutes: AppRoute[] = [
     allowedRoles: ['agent', 'admin'],
   },
   
-  // Admin Routes
-  {
-    path: "/dashboard/admin",
-    element: AdminOverviewPage,
-    protected: true,
-    allowedRoles: ['admin'],
-  },
-  ...adminRoutes, // Spread the admin routes directly
+  // Admin Routes - all admin routes are now in adminRoutes
+  ...adminRoutes,
 ];
 
 // Create redirect components
@@ -108,7 +100,7 @@ const RootRedirect = () => {
 
   switch (profile.role) {
     case 'admin':
-      return createElement(Navigate, { to: "/dashboard/admin", replace: true });
+      return createElement(Navigate, { to: "/admin/dashboard", replace: true }); // Updated to match new admin route
     case 'agent':
       return createElement(Navigate, { to: "/dashboard/agent", replace: true });
     case 'customer':

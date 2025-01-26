@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/ui/icons";
 
-interface NavItem {
+export interface NavItem {
   title: string;
   href: string;
   icon: keyof typeof Icons;

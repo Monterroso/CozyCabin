@@ -1,15 +1,23 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SignUpForm } from "@/components/auth/sign-up-form";
 import { verifyInvite } from "@/lib/api/invites";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { UserRole } from "@/lib/types/supabase";
+import type { Database } from "@/lib/types/supabase";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+
+type UserRole = Database["public"]["Enums"]["user_role"];
+
+const isValidUUID = (str: string | null): str is string => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -19,35 +27,61 @@ export default function SignUpPage() {
     email: string;
     role: UserRole;
   } | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      verifyInvite(token)
-        .then((response) => {
-          if (response.is_valid && response.invite_email && response.invite_role) {
-            setInviteData({
-              email: response.invite_email,
-              role: response.invite_role,
-            });
-          } else {
-            toast({
-              title: "Invalid invite",
-              description: "This invite link is invalid or has expired.",
-              variant: "destructive",
-            });
-            navigate("/auth/signup");
-          }
-        })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
+    const handleInviteVerification = async () => {
+      const maybeToken = searchParams.get("token");
+      
+      if (!isValidUUID(maybeToken)) {
+        toast({
+          title: "Invalid invite",
+          description: "The invite link is invalid.",
+          variant: "destructive",
+        });
+        startTransition(() => {
           navigate("/auth/signup");
         });
-    }
+        return;
+      }
+
+      try {
+        const response = await verifyInvite(maybeToken);
+        if (
+          response.is_valid && 
+          response.invite_email && 
+          response.invite_role && 
+          (response.invite_role === 'agent' || response.invite_role === 'admin')
+        ) {
+          startTransition(() => {
+            setInviteData({
+              email: response.invite_email as string,
+              role: response.invite_role as UserRole,
+            });
+          });
+        } else {
+          toast({
+            title: "Invalid invite",
+            description: "This invite link is invalid or has expired.",
+            variant: "destructive",
+          });
+          startTransition(() => {
+            navigate("/auth/signup");
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "An error occurred",
+          variant: "destructive",
+        });
+        startTransition(() => {
+          navigate("/auth/signup");
+        });
+      }
+    };
+
+    handleInviteVerification();
   }, [searchParams, toast, navigate]);
 
   return (

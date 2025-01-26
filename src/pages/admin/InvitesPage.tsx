@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { inviteSchema, type Invite, type CreateInviteRequest } from "@/lib/types/invites";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { InviteList } from "@/components/invites/invite-list";
+import { inviteSchema, type CreateInviteRequest } from "@/lib/types/invites";
 import { useInviteStore } from "@/stores/inviteStore";
 import type { z } from "zod";
 
@@ -30,6 +32,7 @@ export default function InvitesPage() {
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
   const { invites, loading, error, fetchInvites, createInvite } = useInviteStore();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<FormData>({
     resolver: zodResolver(inviteSchema),
@@ -40,22 +43,31 @@ export default function InvitesPage() {
   });
 
   useEffect(() => {
-    fetchInvites();
+    startTransition(() => {
+      fetchInvites();
+    });
   }, [fetchInvites]);
 
   const onSubmit = form.handleSubmit(async (data: FormData) => {
+    console.log('Creating invite with data:', data);
     try {
       await createInvite(data);
-      setIsCreating(false);
-      form.reset();
+      console.log('Invite created successfully');
+      startTransition(() => {
+        setIsCreating(false);
+        form.reset();
+      });
       toast({
         title: "Invite sent",
         description: "The invite has been sent successfully.",
       });
     } catch (err) {
+      console.error('Failed to create invite:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send invite';
+      console.error('Error details:', { error, errorMessage, originalError: err });
       toast({
         title: "Error",
-        description: error || "Failed to send invite",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -65,7 +77,7 @@ export default function InvitesPage() {
     <div className="container py-10">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Invites</h1>
-        <Button onClick={() => setIsCreating(true)} disabled={isCreating}>
+        <Button onClick={() => setIsCreating(true)} disabled={isCreating || isPending}>
           Create Invite
         </Button>
       </div>
@@ -118,12 +130,13 @@ export default function InvitesPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsCreating(false)}
+                  disabled={isPending}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || isPending}
                 >
                   Send Invite
                 </Button>
@@ -133,31 +146,9 @@ export default function InvitesPage() {
         </Card>
       )}
 
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="space-y-4">
-          {invites?.map((invite: Invite) => (
-            <Card key={invite.id} className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{invite.email}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Role: {invite.role}
-                  </p>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {invite.used_at ? (
-                    <span>Used on {new Date(invite.used_at).toLocaleDateString()}</span>
-                  ) : (
-                    <span>Expires on {new Date(invite.expires_at).toLocaleDateString()}</span>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Suspense fallback={<LoadingSpinner />}>
+        <InviteList invites={invites} loading={loading || isPending} />
+      </Suspense>
     </div>
   );
 } 

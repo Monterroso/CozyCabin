@@ -214,6 +214,7 @@ export type Database = {
       tickets: {
         Row: {
           assigned_to: string | null
+          category: Database["public"]["Enums"]["ticket_category"] | null
           closed_at: string | null
           created_at: string
           created_by: string
@@ -229,6 +230,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"] | null
           closed_at?: string | null
           created_at?: string
           created_by: string
@@ -244,6 +246,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"] | null
           closed_at?: string | null
           created_at?: string
           created_by?: string
@@ -314,6 +317,14 @@ export type Database = {
       }
     }
     Enums: {
+      ticket_category:
+        | "billing"
+        | "technical"
+        | "account"
+        | "feature_request"
+        | "bug"
+        | "security"
+        | "other"
       ticket_priority: "urgent" | "high" | "normal" | "low"
       ticket_status:
         | "open"
@@ -426,6 +437,7 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
 
 // Export the enum types directly from the Database type
 export type TicketStatus = Database['public']['Enums']['ticket_status']

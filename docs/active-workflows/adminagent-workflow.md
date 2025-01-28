@@ -76,8 +76,8 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 ---
 
 ## 2. Create "supabase/functions/adminAgent/index.ts"
-1. [ ] Navigate to supabase/functions/adminAgent/ and create an index.ts file (if it does not already exist).
-2. [ ] Inside index.ts, set up the basic handle for receiving requests in Deno.  
+1. [X] Navigate to supabase/functions/adminAgent/ and create an index.ts file (if it does not already exist).
+2. [X] Inside index.ts, set up the basic handle for receiving requests in Deno.  
    - Example:
      ```ts:supabase/functions/adminAgent/index.ts
      import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
@@ -101,9 +101,18 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 3. Create "supabase/functions/tools/agentOrchestrator.ts"
-1. [ ] In supabase/functions/tools/, create a file named agentOrchestrator.ts.  
-2. [ ] Put high-level orchestration logic here (using LangChain or any direct LLM calls). For example:
+## 3. Create "supabase/functions/_shared/database.types.ts"
+1. [X] Create shared types file with proper database schema types.
+2. [X] Import and set up all necessary types from our main application.
+3. [X] Ensure all enums and relationships are properly typed.
+   - Purpose: Maintain type safety between Edge Function and main application.
+   - State: Complete type definitions matching our Supabase schema.
+
+---
+
+## 4. Create "supabase/functions/tools/agentOrchestrator.ts"
+1. [X] In supabase/functions/tools/, create a file named agentOrchestrator.ts.  
+2. [X] Put high-level orchestration logic here (using LangChain or any direct LLM calls). For example:
    ```ts:supabase/functions/tools/agentOrchestrator.ts
    import { getUnassignedTickets } from "./getUnassignedTickets.ts";
    import { summarizeTickets } from "./summarizeTickets.ts";
@@ -138,9 +147,9 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 4. Create "supabase/functions/tools/getUnassignedTickets.ts"
-1. [ ] In supabase/functions/tools/, create a file named getUnassignedTickets.ts.
-2. [ ] Fetch tickets from Supabase with assigned_to = null, using the Deno-compatible Supabase client:
+## 5. Create "supabase/functions/tools/getUnassignedTickets.ts"
+1. [X] In supabase/functions/tools/, create a file named getUnassignedTickets.ts.
+2. [X] Fetch tickets from Supabase with assigned_to = null, using the Deno-compatible Supabase client:
    ```ts:supabase/functions/tools/getUnassignedTickets.ts
    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
    // Ensure to pull your environment variables from the Edge Function, not from .env directly
@@ -169,7 +178,7 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 5. Create "supabase/functions/tools/summarizeTickets.ts"
+## 6. Create "supabase/functions/tools/summarizeTickets.ts"
 1. [ ] In supabase/functions/tools/, create a file named summarizeTickets.ts.
 2. [ ] Use LangChain to summarize an array of ticket data:
    ```ts:supabase/functions/tools/summarizeTickets.ts
@@ -208,9 +217,9 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 6. Create "supabase/functions/tools/categorizeTicket.ts"
-1. [ ] In supabase/functions/tools/, create categorizeTicket.ts.
-2. [ ] Use LangChain or direct OpenAI calls to predict a category:
+## 7. Create "supabase/functions/tools/categorizeTicket.ts"
+1. [X] In supabase/functions/tools/, create categorizeTicket.ts.
+2. [X] Use LangChain or direct OpenAI calls to predict a category:
    ```ts:supabase/functions/tools/categorizeTicket.ts
    import { ChatOpenAI } from "langchain/chat_models/openai";
    import { SystemMessage, HumanMessage } from "langchain/schema";
@@ -237,9 +246,9 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 7. Create "supabase/functions/tools/updateTicket.ts"
-1. [ ] In supabase/functions/tools/, create a file named updateTicket.ts.
-2. [ ] This function updates the "tickets" table to set new tags, assigned_to, or other fields:
+## 8. Create "supabase/functions/tools/updateTicket.ts"
+1. [X] In supabase/functions/tools/, create a file named updateTicket.ts.
+2. [X] This function updates the "tickets" table to set new tags, assigned_to, or other fields:
    ```ts:supabase/functions/tools/updateTicket.ts
    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -270,7 +279,7 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 8. (Optional) Create "supabase/functions/tools/insertAiLogRecord.ts"
+## 9. (Optional) Create "supabase/functions/tools/insertAiLogRecord.ts"
 1. [ ] In supabase/functions/tools/, make a file named insertAiLogRecord.ts if you want to track metrics in an "ai_logs" table.
 2. [ ] Insert a record whenever you do an AI action:
    ```ts:supabase/functions/tools/insertAiLogRecord.ts
@@ -300,10 +309,60 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 9. Add a "pgvector" Table and File Chunking (If Needed for Documents)
+## 10. Upgrade to Advanced Agent Pattern with Vector Stores
+This is an architectural upgrade that enhances our basic implementation with more sophisticated query handling.
+
+### Step 10a: Set up Vector Stores
+1. [ ] Create vector stores for tickets and customer data:
+   ```typescript
+   const ticketVectorStore = new Chroma(
+     "tickets",
+     new OpenAIEmbeddings({
+       openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
+     })
+   );
+   ```
+
+### Step 10b: Create Specialized QA Chains
+1. [ ] Implement RetrievalQA chains for different data types:
+   ```typescript
+   const ticketQA = RetrievalQA.fromChainType({
+     llm: chatModel,
+     chainType: "stuff",
+     retriever: ticketVectorStore.asRetriever(),
+   });
+   ```
+
+### Step 10c: Define Tool-based Architecture
+1. [ ] Convert existing functions into LangChain tools:
+   ```typescript
+   const tools = [
+     new Tool({
+       name: "Ticket Query System",
+       func: ticketQA.run,
+       description: "Use when you need to answer questions about tickets...",
+     }),
+     // ... other tools
+   ];
+   ```
+
+### Step 10d: Update Agent Orchestrator
+1. [ ] Modify agentOrchestrator.ts to use the tool-based approach:
+   ```typescript
+   const agent = initializeAgent(
+     tools,
+     chatModel,
+     {
+       agentType: AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+       verbose: true
+     }
+   );
+   ```
+
+## 11. Implement Vector Storage (If Needed for Documents)
 Sometimes you want the agent to read large documents or knowledge base to answer ticket-related queries.
 
-### Step 9a: Create "supabase/functions/tools/setupPgVector.ts" (One-file edit)
+### Step 11a: Create "supabase/functions/tools/setupPgVector.ts" (One-file edit)
 1. [ ] Make a function to help with pgvector indexing or upserts. 
    ```ts:supabase/functions/tools/setupPgVector.ts
    // Pseudocode for how you might initialize a table with a "vector" column
@@ -313,7 +372,7 @@ Sometimes you want the agent to read large documents or knowledge base to answer
    - Purpose: Provide any custom logic for vector-based searching or storing embeddings.  
    - State: This step might also involve a Supabase migration so your "embedding" column is a vector type.
 
-### Step 9b: Create "supabase/functions/tools/fileChunking.ts" (One-file edit)
+### Step 11b: Create "supabase/functions/tools/fileChunking.ts" (One-file edit)
 1. [ ] Implement a function that splits large files or text into smaller chunks, then stores embeddings in your "pgvector" table:
    ```ts:supabase/functions/tools/fileChunking.ts
    import { OpenAIEmbeddings } from "langchain/embeddings/openai";
@@ -330,8 +389,8 @@ Sometimes you want the agent to read large documents or knowledge base to answer
 
 ---
 
-## 10. Create a Minimal Front-End to Call the Edge Function
-### Step 10a: "src/pages/admin/AdminConsole.tsx"
+## 12. Create a Minimal Front-End to Call the Edge Function
+### Step 12a: "src/pages/admin/AdminConsole.tsx"
 1. [ ] Create the admin console page using our established component architecture:
    ```tsx:src/pages/admin/AdminConsole.tsx
    import { useState } from "react";
@@ -386,7 +445,7 @@ Sometimes you want the agent to read large documents or knowledge base to answer
    - Purpose: Provide a modern, accessible UI using our design system.
    - State: Uses Shadcn components, MountainLodge theme, and proper form handling.
 
-### Step 10b: "src/stores/adminStore.ts"
+### Step 12b: "src/stores/adminStore.ts"
 1. [ ] Create a Zustand store for admin AI state management:
    ```ts:src/stores/adminStore.ts
    import { create } from 'zustand';
@@ -466,6 +525,116 @@ Sometimes you want the agent to read large documents or knowledge base to answer
    export type AdminMessageInput = z.infer<typeof adminMessageSchema>;
    export type AdminFilterInput = z.infer<typeof adminFilterSchema>;
    ```
+
+## Advanced Agent Pattern with Vector Stores
+
+This section outlines an advanced implementation pattern that combines agents with vector stores for more sophisticated query handling and information retrieval.
+
+### Key Benefits
+- Better separation of concerns through specialized tools
+- Intelligent routing of queries to appropriate subsystems
+- Multi-hop reasoning capabilities
+- Enhanced search through vector embeddings
+- More natural handling of complex queries
+
+### Implementation Example
+```typescript
+import { RetrievalQA } from "langchain/chains";
+import { Chroma } from "langchain/vectorstores";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+import { Tool, AgentType, initializeAgent } from "langchain/agents";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+
+// 1. Set up vector stores for different data types
+const ticketVectorStore = new Chroma(
+  "tickets",
+  new OpenAIEmbeddings({
+    openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
+  })
+);
+
+const customerVectorStore = new Chroma(
+  "customers",
+  new OpenAIEmbeddings({
+    openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
+  })
+);
+
+// 2. Create specialized QA chains
+const ticketQA = RetrievalQA.fromChainType({
+  llm: chatModel,
+  chainType: "stuff",
+  retriever: ticketVectorStore.asRetriever(),
+});
+
+const customerQA = RetrievalQA.fromChainType({
+  llm: chatModel,
+  chainType: "stuff",
+  retriever: customerVectorStore.asRetriever(),
+});
+
+// 3. Define specialized tools
+const tools = [
+  new Tool({
+    name: "Ticket Query System",
+    func: ticketQA.run,
+    description: "Use when you need to answer questions about tickets, their status, or history. Input should be a complete question.",
+  }),
+  new Tool({
+    name: "Customer Information System",
+    func: customerQA.run,
+    description: "Use when you need information about customers, their history, or preferences. Input should be a complete question.",
+  }),
+  new Tool({
+    name: "Ticket Update System",
+    func: updateTicket,
+    description: "Use when you need to modify ticket properties like status, assignment, or priority.",
+  })
+];
+
+// 4. Initialize the agent with these tools
+const agent = initializeAgent(
+  tools,
+  chatModel,
+  {
+    agentType: AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose: true
+  }
+);
+
+// 5. Example usage in our orchestrator
+export async function handleAdminAgentRequest(
+  conversationHistory: Message[],
+  newUserMessage: string
+): Promise<string> {
+  try {
+    // The agent will automatically choose the right tool based on the query
+    const response = await agent.run(newUserMessage);
+    return response;
+  } catch (error) {
+    console.error("Error in handleAdminAgentRequest:", error);
+    return "I encountered an error processing your request. Please try again.";
+  }
+}
+```
+
+### Integration Steps
+1. First complete the basic tool implementation (Steps 1-8 above)
+2. Add vector store setup for tickets and customer data
+3. Create specialized QA chains for different query types
+4. Modify the agent orchestrator to use the tool-based approach
+5. Add multi-hop reasoning capabilities for complex queries
+
+### Example Complex Queries This Can Handle
+1. "Find all high-priority tickets from customers who have reported similar issues in the past month"
+2. "Summarize the common themes in unassigned tickets and suggest assignments based on agent performance history"
+3. "What's the average response time for tickets from our enterprise customers, and who are our best-performing agents for these tickets?"
+
+This pattern is particularly useful when:
+- You need to search through large amounts of ticket/customer history
+- Queries require combining information from multiple sources
+- You want the agent to make more intelligent routing decisions
+- You need to handle complex, multi-step queries
 
 ## Final Notes
 • Run "yarn supabase functions deploy adminAgent" to deploy your Edge Function with all these files included.  

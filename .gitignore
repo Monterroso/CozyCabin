@@ -152,3 +152,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

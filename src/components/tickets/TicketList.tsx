@@ -27,22 +27,11 @@ import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import type { TicketStatus, TicketPriority } from '@/lib/types/supabase';
 import { cn } from '@/lib/utils';
-
-const statusColorMap: Record<TicketStatus, string> = {
-  open: 'bg-pine-green/20 text-pine-green',
-  in_progress: 'bg-lodge-brown/20 text-lodge-brown',
-  pending: 'bg-ember-orange/20 text-ember-orange',
-  solved: 'bg-pine-green/20 text-pine-green',
-  closed: 'bg-twilight-gray/20 text-twilight-gray',
-} as const;
-
-const priorityColorMap: Record<TicketPriority, string> = {
-  urgent: 'bg-ember-orange/20 text-ember-orange',
-  high: 'bg-ember-orange/20 text-ember-orange',
-  medium: 'bg-lodge-brown/20 text-lodge-brown',
-  low: 'bg-pine-green/20 text-pine-green',
-  normal: 'bg-pine-green/20 text-pine-green',
-} as const;
+import { 
+  PRIORITY_OPTIONS,
+  PRIORITY_COLORS,
+  STATUS_COLORS
+} from '@/lib/types/ticket'
 
 export function TicketList() {
   const navigate = useNavigate();
@@ -120,11 +109,11 @@ export function TicketList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="urgent">Urgent</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="normal">Normal</SelectItem>
+            {PRIORITY_OPTIONS.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -150,12 +139,12 @@ export function TicketList() {
               >
                 <TableCell className="font-medium text-lodge-brown">{ticket.subject}</TableCell>
                 <TableCell>
-                  <Badge className={cn('capitalize', statusColorMap[ticket.status])}>
+                  <Badge className={cn('capitalize', STATUS_COLORS[ticket.status])}>
                     {ticket.status.replace('_', ' ')}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={cn('capitalize', priorityColorMap[ticket.priority])}>
+                  <Badge className={cn('capitalize', PRIORITY_COLORS[ticket.priority])}>
                     {ticket.priority}
                   </Badge>
                 </TableCell>

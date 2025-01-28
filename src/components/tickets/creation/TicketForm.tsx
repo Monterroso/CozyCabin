@@ -32,6 +32,7 @@ import {
 import type { TicketPriority } from '@/lib/types/supabase';
 import { FileUpload } from './FileUpload';
 import { cn } from '@/lib/utils';
+import { PRIORITY_OPTIONS, PRIORITY_COLORS } from '@/lib/types/ticket'
 
 // Form validation schema
 const ticketFormSchema = z.object({
@@ -41,22 +42,11 @@ const ticketFormSchema = z.object({
   description: z.string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must be less than 2000 characters'),
-  priority: z.enum(['normal', 'low', 'medium', 'high', 'urgent'] as const)
-    .default('normal'),
+  priority: z.custom<TicketPriority>(),
   attachments: z.array(z.instanceof(File)).optional(),
 });
 
 type TicketFormValues = z.infer<typeof ticketFormSchema>;
-
-const PRIORITY_COLORS = {
-  urgent: 'text-red-600',
-  high: 'text-orange-600',
-  medium: 'text-yellow-600',
-  low: 'text-green-600',
-  normal: 'text-blue-600',
-} as const;
-
-const PRIORITIES: TicketPriority[] = ['normal', 'low', 'medium', 'high', 'urgent'];
 
 interface TicketFormProps {
   onSuccess?: (ticketId: string) => void;
@@ -88,6 +78,7 @@ export function TicketForm({ onSuccess }: TicketFormProps) {
         subject: data.subject,
         description: data.description,
         priority: data.priority,
+        created_by: user.data.user.id,
         customer_id: user.data.user.id,
         tags: [],
         metadata: {},
@@ -174,26 +165,28 @@ export function TicketForm({ onSuccess }: TicketFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Priority</FormLabel>
-                <Select 
+                <Select
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
                 >
-                  <FormControl>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                  </FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority">
+                      {field.value && (
+                        <span className={cn("capitalize", PRIORITY_COLORS[field.value].split(' ')[1])}>
+                          {PRIORITY_OPTIONS.find(opt => opt.value === field.value)?.label}
+                        </span>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
-                    {PRIORITIES.map((priority) => (
+                    {PRIORITY_OPTIONS.map(({ value, label }) => (
                       <SelectItem 
-                        key={priority} 
-                        value={priority}
-                        className={cn(
-                          "capitalize",
-                          PRIORITY_COLORS[priority]
-                        )}
+                        key={value} 
+                        value={value}
                       >
-                        {priority}
+                        <span className={cn("capitalize", PRIORITY_COLORS[value].split(' ')[1])}>
+                          {label}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>

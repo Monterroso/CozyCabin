@@ -267,3 +267,185 @@ fetchCustomerTickets: async (filters?) => {
 3. Consistent error handling
 4. Maintained or improved performance
 5. No regression in functionality
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=======================================
+
+1) Create a New “fetchTicketsUnified” Function (ticketStore.ts)
+• In ticketStore.ts, define an interface or type that captures possible fetch parameters (role, view, filter criteria, etc.).
+• Build out a function that uses these parameters to build a single query to Supabase (or whichever backend you’re using).
+• Include logic for conditions you previously handled in fetchTickets, fetchAgentQueue, and fetchAgentDashboardData (e.g., limiting results, ordering by priority).
+
+// Step 1: Create a new unified fetch function
+interface TicketQueryOptions {
+  role?: 'agent' | 'customer' | 'admin';
+  view?: 'dashboard' | 'queue' | 'list';
+  filters?: {
+    status?: string;  // or an enum
+    priority?: string; // or an enum
+  };
+  limit?: number;
+}
+
+async function fetchTicketsUnified(options: TicketQueryOptions) {
+  const { role, view, filters, limit = 10 } = options;
+
+  // Start a base query
+  let query = supabase
+    .from('tickets')
+    .select('id, subject, status, priority, created_at, updated_at');
+
+  // Example: filter by role if needed
+  if (role === 'agent') {
+    // Possibly filter by assigned_to = current agent's ID, if you keep that logic here.
+  }
+
+  // Example: filter by status or priority if provided
+  if (filters?.status) {
+    query = query.eq('status', filters.status);
+  }
+  if (filters?.priority) {
+    query = query.eq('priority', filters.priority);
+  }
+
+  // Limit or order results
+  if (view === 'dashboard') {
+    // Possibly sort by priority first, then date
+    query = query.order('priority', { ascending: false });
+  }
+  
+  // Common ordering
+  query = query.order('created_at', { ascending: true }).limit(limit);
+
+  // Execute query
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+2) Update “fetchTickets” to Use the New Function (ticketStore.ts)
+• In the same file (ticketStore.ts), locate the old fetchTickets function.
+• Replace its internal Supabase query logic with a simple call to fetchTicketsUnified, passing in the appropriate parameters for a general purpose fetch.
+• Make sure the returned data is still set to your store state.
+Example:
+
+// Step 2: Migrate logic from fetchTickets to fetchTicketsUnified
+const fetchTickets = async (filters?: { status?: string; priority?: string }) => {
+  set({ loading: true, error: null });
+
+  try {
+    const result = await fetchTicketsUnified({
+      filters,
+      // This might be the default "list" view
+      view: 'list',
+      // You can add any default or custom logic here
+      limit: 50,
+    });
+
+    set({ tickets: result, loading: false });
+  } catch (err) {
+    set({ error: (err as Error).message, loading: false });
+  }
+};
+
+==========================
+
+3) Update “fetchAgentQueue” to Use fetchTicketsUnified (ticketStore.ts)
+• In ticketStore.ts, find fetchAgentQueue.
+• Instead of directly querying Supabase, call fetchTicketsUnified with parameters that replicate agent queue logic (for instance, role = 'agent', maybe a filter for only “open” tickets, etc.).
+• Remove the old direct query code.
+Example:
+
+// Step 3: Migrate fetchAgentQueue
+const fetchAgentQueue = async () => {
+  try {
+    set({ loading: true, error: null });
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (!currentUser) throw new Error('No authenticated user found');
+
+    const result = await fetchTicketsUnified({
+      role: 'agent',
+      view: 'queue',
+      filters: { status: 'open' }, // Or whatever matches your queue logic
+    });
+
+    set({ agentQueue: result, loading: false });
+  } catch (err) {
+    set({ error: (err as Error).message, loading: false });
+  }
+};
+
+================
+
+4) Update “fetchAgentDashboardData” to Use fetchTicketsUnified (ticketStore.ts)
+• Same file, locate fetchAgentDashboardData.
+• Replace its Supabase query with a call to fetchTicketsUnified but set the view to “dashboard,” limit to 10, etc.
+• Preserve any special logic (like merging in performance stats or other Supabase RPC calls).
+Example:
+
+// Step 4: Migrate fetchAgentDashboardData
+const fetchAgentDashboardData = async () => {
+  try {
+    set({ loading: true, error: null });
+    const { data: agentStats, error: statsError } = await supabase.rpc('get_agent_performance_stats');
+    if (statsError) throw statsError;
+
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (!currentUser) throw new Error('No authenticated user found');
+
+    const dashboardTickets = await fetchTicketsUnified({
+      role: 'agent',
+      view: 'dashboard',
+      filters: {},  // specify if you want particular status or priority, or leave empty
+      limit: 10,
+    });
+
+    set({
+      agentStats,
+      dashboardTickets,
+      loading: false,
+    });
+  } catch (err) {
+    set({ error: (err as Error).message, loading: false });
+    throw err;
+  }
+};
+
+==================
+
+5) Clean Up & Remove Redundant Logic (ticketStore.ts)
+• Review each of the original functions (fetchTickets, fetchAgentQueue, fetchAgentDashboardData). Confirm there’s no leftover query logic.
+• Make sure each function is just calling fetchTicketsUnified with the correct parameters.
+• Any old code or duplicative filters can be safely removed now.
+
+==============================
+
+6) Verify UI Pages & Components
+• Now that all fetch calls reference fetchTicketsUnified indirectly, review your UI components (AgentDashboard.tsx, CustomerOverviewPage.tsx, etc.) to ensure they still function correctly.
+• Most should work unchanged because they’re still calling the same store functions. But you might want to confirm each fetch gets the expected data.
+• If you discover extra filters or sorting, add them to the fetchTicketsUnified call as options.
+
+====================================
+
+7) Optional: Extend fetchTicketsUnified for More Complex Use Cases
+• If you need special conditions (like “only my assigned tickets” or “high priority only”), you can add or refine parameters in TicketQueryOptions.
+• For instance, you could add an “assignedTo?: string” field for a user’s ID if you want direct filtering at the query level.
+
+
+
+
+
+==========================================================
+

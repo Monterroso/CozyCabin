@@ -25,7 +25,8 @@ import { TicketStatus, TicketPriority } from '@/lib/types/supabase'
 import { 
   PRIORITY_COLORS, 
   STATUS_COLORS,
-  type Ticket
+  PRIORITY_OPTIONS,
+  type TicketRow
 } from '@/lib/types/ticket'
 
 const priorityOrder = {
@@ -95,10 +96,11 @@ export function AgentTicketQueue() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Priority</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="normal">Normal</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              {PRIORITY_OPTIONS.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 

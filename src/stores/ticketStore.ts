@@ -1,82 +1,212 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
-import type { Database } from '@/lib/types/supabase';
-import type { TicketStatus, TicketPriority } from '@/lib/types/supabase';
-import { Ticket, CreateTicket as TicketInsert, UpdateTicket as TicketUpdate } from '@/lib/types/ticket';
+import type { Json, TicketStatus } from '@/lib/types/supabase';
 import type { User } from '@supabase/supabase-js';
 import { useAuthStore } from './authStore';
 import type { UserProfile } from './authStore';
+import type {
+  TicketState,
+  TicketRow,
+  TicketQueryOptions,
+  TicketFilters,
+  TicketInsert,
+  TicketUpdate,
+  TicketCommentRow,
+  TicketAttachmentRow,
+  TicketCommentInsert,
+  TicketAttachmentInsert
+} from '@/lib/types/ticket';
 
-type TicketComment = Database['public']['Tables']['ticket_comments']['Row'];
-type TicketAttachment = Database['public']['Tables']['ticket_attachments']['Row'];
+/**
+ * A single, unified function to fetch tickets with varying parameters
+ */
+const fetchTicketsUnified = async (options: TicketQueryOptions): Promise<TicketRow[]> => {
+  const { role, view, filters, limit = 10, order } = options;
+  
+  // Start with base query
+  let query = supabase
+    .from('tickets')
+    .select('*');
 
-interface TicketFilters {
-  status?: TicketStatus;
-  priority?: TicketPriority;
-  assigned_to?: string | null;
-  customer_id?: string;
-  search?: string;
-}
+  // Apply role-based filtering
+  if (role === 'agent') {
+    // For agents, we either show their assigned tickets or unassigned tickets
+    if (filters?.assigned_to === undefined) {
+      // No assigned_to filter specified, show agent's tickets by default
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        query = query.eq('assigned_to', currentUser.id);
+      }
+    }
+    // If filters.assigned_to is null or a specific ID, that filter will be applied later
+  } else if (role === 'customer') {
+    const currentUser = useAuthStore.getState().user;
+    if (currentUser) {
+      query = query.eq('customer_id', currentUser.id);
+    }
+  }
+  // Admin role doesn't need special filtering
 
-interface TicketState {
-  tickets: Ticket[];
-  selectedTicket: Ticket | null;
-  selectedTicketComments: TicketComment[];
-  selectedTicketAttachments: TicketAttachment[];
-  userProfiles: Record<string, UserProfile>;
-  loading: boolean;
-  error: string | null;
-  filters: TicketFilters;
-  agentStats: {
-    assigned_tickets: number;
-    resolved_today: number;
-    average_response_time: number;
-    satisfaction_rate: number;
-  } | null;
-  dashboardTickets: {
-    id: string;
-    subject: string;
-    status: TicketStatus;
-    priority: string;
-    created_at: string;
-    updated_at: string;
-  }[];
-  
-  // Ticket CRUD
-  fetchTickets: (filters?: TicketFilters) => Promise<void>;
-  createTicket: (ticket: TicketInsert) => Promise<Ticket | null>;
-  updateTicket: (id: string, updates: TicketUpdate) => Promise<void>;
-  deleteTicket: (id: string) => Promise<void>;
-  
-  // Comment operations
-  fetchComments: (ticketId: string) => Promise<void>;
-  addComment: (comment: Omit<Database['public']['Tables']['ticket_comments']['Insert'], 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
-  updateComment: (id: string, content: string) => Promise<void>;
-  deleteComment: (id: string) => Promise<void>;
-  
-  // Attachment operations
-  uploadAttachment: (
-    ticketId: string,
-    file: File,
-    commentId?: string | null
-  ) => Promise<void>;
-  deleteAttachment: (id: string) => Promise<void>;
-  
-  // UI state
-  selectTicket: (ticketIdOrTicket: string | Ticket | null) => void;
-  setFilters: (filters: TicketFilters) => void;
-  
-  // Agent operations
-  fetchAgentQueue: () => Promise<void>;
-  assignTicket: (ticketId: string) => Promise<void>;
-  updateTicketStatus: (ticketId: string, status: TicketStatus) => Promise<void>;
-  
-  // Dashboard operations
-  fetchAgentDashboardData: () => Promise<void>;
+  // Apply view-specific logic
+  if (view === 'dashboard') {
+    query = query.order('priority', { ascending: false });
+  } else if (view === 'queue') {
+    query = query.eq('status', 'open');
+  }
 
-  // Profile operations
-  fetchProfiles: (userIds: string[]) => Promise<void>;
-}
+  // Apply filters
+  if (filters) {
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters.priority) {
+      query = query.eq('priority', filters.priority);
+    }
+    if (filters.assigned_to !== undefined) {
+      if (filters.assigned_to === null) {
+        query = query.is('assigned_to', null);
+      } else {
+        query = query.eq('assigned_to', filters.assigned_to);
+      }
+    }
+    if (filters.customer_id) {
+      query = query.eq('customer_id', filters.customer_id);
+    }
+    if (filters.search) {
+      query = query.or(`subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    }
+  }
+
+  // Apply ordering
+  if (order && order.length > 0) {
+    order.forEach(({ field, ascending = true }) => {
+      query = query.order(field, { ascending });
+    });
+  } else {
+    // Default ordering
+    query = query.order('created_at', { ascending: false });
+  }
+
+  // Apply limit
+  query = query.limit(limit);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+};
+
+/**
+ * A unified function to handle comment operations
+ */
+const handleCommentOperation = async (
+  operation: 'create' | 'update' | 'delete',
+  comment: TicketCommentInsert | { id: string },
+) => {
+  try {
+    switch (operation) {
+      case 'create': {
+        const { data, error } = await supabase
+          .from('ticket_comments')
+          .insert([comment])
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
+      case 'update': {
+        const { id, ...updates } = comment as TicketCommentRow;
+        const { data, error } = await supabase
+          .from('ticket_comments')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
+      case 'delete': {
+        const { error } = await supabase
+          .from('ticket_comments')
+          .delete()
+          .eq('id', (comment as { id: string }).id);
+        if (error) throw error;
+        return null;
+      }
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
+/**
+ * A unified function to handle attachment operations
+ */
+const handleAttachmentOperation = async (
+  operation: 'create' | 'delete',
+  attachment: TicketAttachmentInsert | { id: string },
+  file?: File
+) => {
+  try {
+    switch (operation) {
+      case 'create': {
+        if (!file) throw new Error('File is required for creating attachments');
+        
+        // 1. Upload file to storage
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${(attachment as TicketAttachmentInsert).ticket_id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('ticket-attachments')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 2. Create attachment record with storage path
+        const fullAttachment: TicketAttachmentInsert = {
+          ...(attachment as TicketAttachmentInsert),
+          storage_path: filePath,
+        };
+
+        const { data, error } = await supabase
+          .from('ticket_attachments')
+          .insert([fullAttachment])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+      case 'delete': {
+        // 1. Get attachment info
+        const { data: existingAttachment, error: fetchError } = await supabase
+          .from('ticket_attachments')
+          .select()
+          .eq('id', (attachment as { id: string }).id)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        // 2. Delete from storage
+        const { error: storageError } = await supabase.storage
+          .from('ticket-attachments')
+          .remove([existingAttachment.storage_path]);
+
+        if (storageError) throw storageError;
+
+        // 3. Delete record
+        const { error } = await supabase
+          .from('ticket_attachments')
+          .delete()
+          .eq('id', (attachment as { id: string }).id);
+
+        if (error) throw error;
+        return null;
+      }
+    }
+  } catch (err) {
+    throw err;
+  }
+};
 
 export const useTicketStore = create<TicketState>((set, get) => ({
   tickets: [],
@@ -94,48 +224,27 @@ export const useTicketStore = create<TicketState>((set, get) => ({
     try {
       console.log('[TicketStore] Fetching tickets with filters:', filters);
       set({ loading: true, error: null });
-      let query = supabase
-        .from('tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
 
-      // Apply filters
-      if (filters.status) {
-        query = query.eq('status', filters.status);
-      }
-      if (filters.priority) {
-        query = query.eq('priority', filters.priority);
-      }
-      if (filters.assigned_to !== undefined) {
-        if (filters.assigned_to === null) {
-          query = query.is('assigned_to', null);
-        } else {
-          query = query.eq('assigned_to', filters.assigned_to);
-        }
-      }
-      if (filters.customer_id) {
-        query = query.eq('customer_id', filters.customer_id);
-      }
-      if (filters.search) {
-        query = query.or(`subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
-      }
+      const data = await fetchTicketsUnified({
+        role: useAuthStore.getState().profile?.role || 'customer',
+        view: 'list',
+        filters,
+        limit: 50
+      });
 
-      const { data, error } = await query;
-      console.log('[TicketStore] Tickets fetch response:', { count: data?.length, error });
-
-      if (error) throw error;
-
-      if (data) {
         // Fetch profiles for all users involved in tickets
-        const userIds = data.flatMap(ticket => [
-          ticket.created_by,
-          ticket.assigned_to
-        ]).filter(Boolean);
-        
+      const uniqueUserIds = new Set<string>();
+      data.forEach(ticket => {
+        if (ticket.created_by) uniqueUserIds.add(ticket.created_by);
+        if (ticket.assigned_to) uniqueUserIds.add(ticket.assigned_to);
+      });
+      
+      const userIds = Array.from(uniqueUserIds);
+      if (userIds.length > 0) {
         await get().fetchProfiles(userIds);
-        
-        set({ tickets: data, filters });
       }
+      
+      set({ tickets: data, filters });
     } catch (err) {
       const error = err as Error;
       set({ error: error.message });
@@ -150,25 +259,27 @@ export const useTicketStore = create<TicketState>((set, get) => ({
       const currentUser = useAuthStore.getState().user;
       if (!currentUser) throw new Error('User must be logged in to create a ticket');
 
-      const ticketData = {
-        ...ticket,
-        created_by: currentUser.id,
-        customer_id: ticket.customer_id || currentUser.id,
-      };
-
       const { data, error } = await supabase
         .from('tickets')
-        .insert(ticketData)
+        .insert([{
+          created_by: currentUser.id,
+          customer_id: ticket.customer_id || currentUser.id,
+          subject: ticket.subject,
+          description: ticket.description,
+          priority: ticket.priority,
+          tags: ticket.tags,
+          metadata: ticket.metadata as Json
+        }])
         .select()
         .single();
 
       if (error) throw error;
-      const newTicket = data as Ticket;
+      
       set((state) => ({
-        tickets: [newTicket, ...state.tickets],
+        tickets: [data, ...state.tickets],
         loading: false
       }));
-      return newTicket;
+      return data;
     } catch (err) {
       const error = err as Error;
       set({ error: error.message });
@@ -209,15 +320,22 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
       const { error } = await supabase
         .from('tickets')
-        .update(updates)
+        .update({
+          ...updates,
+          metadata: updates.metadata as Json
+        })
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Update local state
       set((state) => ({
-        tickets: state.tickets.map((ticket) =>
-          ticket.id === id ? { ...ticket, ...updates } : ticket
+        tickets: state.tickets.map((t) =>
+          t.id === id ? { ...t, ...updates } : t
         ),
-        selectedTicket: state.selectedTicket?.id === id ? { ...state.selectedTicket, ...updates } : state.selectedTicket,
+        selectedTicket: state.selectedTicket?.id === id 
+          ? { ...state.selectedTicket, ...updates } 
+          : state.selectedTicket,
       }));
     } catch (err) {
       const error = err as Error;
@@ -280,16 +398,10 @@ export const useTicketStore = create<TicketState>((set, get) => ({
     }
   },
 
-  addComment: async (comment) => {
+  addComment: async (comment: Omit<TicketCommentInsert, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       set({ loading: true, error: null });
-      const { data, error } = await supabase
-        .from('ticket_comments')
-        .insert([comment])
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await handleCommentOperation('create', comment);
       set((state) => ({
         selectedTicketComments: [...state.selectedTicketComments, data],
       }));
@@ -330,12 +442,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   deleteComment: async (id: string) => {
     try {
       set({ loading: true, error: null });
-      const { error } = await supabase
-        .from('ticket_comments')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await handleCommentOperation('delete', { id });
       set((state) => ({
         selectedTicketComments: state.selectedTicketComments.filter((c) => c.id !== id),
       }));
@@ -352,34 +459,16 @@ export const useTicketStore = create<TicketState>((set, get) => ({
     try {
       set({ loading: true, error: null });
       
-      // 1. Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${ticketId}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('ticket-attachments')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // 2. Create attachment record
-      const attachment: Database['public']['Tables']['ticket_attachments']['Insert'] = {
+      const attachment: TicketAttachmentInsert = {
         ticket_id: ticketId,
         comment_id: commentId,
         file_name: file.name,
         file_type: file.type,
         file_size: file.size,
-        storage_path: filePath,
         uploaded_by: (await supabase.auth.getUser()).data.user?.id!,
       };
 
-      const { data, error } = await supabase
-        .from('ticket_attachments')
-        .insert([attachment])
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await handleAttachmentOperation('create', attachment, file);
       set((state) => ({
         selectedTicketAttachments: [...state.selectedTicketAttachments, data],
       }));
@@ -395,30 +484,7 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   deleteAttachment: async (id: string) => {
     try {
       set({ loading: true, error: null });
-      
-      // 1. Get attachment info
-      const { data: attachment, error: fetchError } = await supabase
-        .from('ticket-attachments')
-        .select()
-        .eq('id', id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // 2. Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('ticket-attachments')
-        .remove([attachment.storage_path]);
-
-      if (storageError) throw storageError;
-
-      // 3. Delete record
-      const { error } = await supabase
-        .from('ticket-attachments')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await handleAttachmentOperation('delete', { id });
       set((state) => ({
         selectedTicketAttachments: state.selectedTicketAttachments.filter((a) => a.id !== id),
       }));
@@ -431,13 +497,15 @@ export const useTicketStore = create<TicketState>((set, get) => ({
     }
   },
 
-  selectTicket: async (ticketIdOrTicket: string | Ticket | null) => {
+  selectTicket: async (ticketIdOrTicket: string | TicketRow | null) => {
     if (!ticketIdOrTicket) {
-      set({ selectedTicket: null, selectedTicketComments: [], selectedTicketAttachments: [] });
+      set({ selectedTicket: null });
       return;
     }
 
-    const ticketId = typeof ticketIdOrTicket === 'string' ? ticketIdOrTicket : ticketIdOrTicket.id;
+    const ticketId = typeof ticketIdOrTicket === 'string' 
+      ? ticketIdOrTicket 
+      : ticketIdOrTicket.id;
     
     try {
       set({ loading: true, error: null });
@@ -451,11 +519,14 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
       // Fetch profiles for the ticket's users
       if (ticket) {
-        const userIds = [ticket.created_by, ticket.assigned_to].filter(Boolean);
+        const userIds = [
+          ticket.created_by,
+          ...(ticket.assigned_to ? [ticket.assigned_to] : [])
+        ];
         await get().fetchProfiles(userIds);
       }
 
-      set({ selectedTicket: ticket as Ticket });
+      set({ selectedTicket: ticket as TicketRow });
       await get().fetchComments(ticketId);
     } catch (err) {
       const error = err as Error;
@@ -472,50 +543,47 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
   fetchAgentQueue: async () => {
     const currentUser = useAuthStore.getState().user;
-    if (!currentUser) return;
+    const userProfile = useAuthStore.getState().profile;
+    
+    if (!currentUser || !userProfile || userProfile.role !== 'agent') {
+      throw new Error('Must be logged in as an agent to view queue');
+    }
 
-    await get().fetchTickets({
-      ...get().filters,
-      assigned_to: currentUser.id,
+    return get().fetchTickets({
       status: 'open',
+      assigned_to: currentUser.id
     });
   },
 
   assignTicket: async (ticketId: string) => {
-    const currentUser = useAuthStore.getState().user as User;
-    if (!currentUser) return;
-
-    set({ loading: true, error: null });
-    try {
-      const updates = {
-        assigned_to: currentUser.id,
-        status: 'in_progress' as const
-      };
-      
-      const { error } = await supabase
-        .from('tickets')
-        .update(updates)
-        .eq('id', ticketId);
-
-      if (error) throw error;
-      set((state) => ({
-        tickets: state.tickets.map((ticket) =>
-          ticket.id === ticketId
-            ? { ...ticket, ...updates }
-            : ticket
-        ),
-        selectedTicket: state.selectedTicket?.id === ticketId
-          ? { ...state.selectedTicket, ...updates }
-          : state.selectedTicket,
-        loading: false
-      }));
-    } catch (err) {
-      const error = err as Error;
-      set({ error: error.message });
+    const currentUser = useAuthStore.getState().user;
+    const userProfile = useAuthStore.getState().profile;
+    
+    if (!currentUser || !userProfile || userProfile.role !== 'agent') {
+      throw new Error('Must be logged in as an agent to assign tickets');
     }
+
+    // Validate the ticket exists and isn't already assigned
+    const { data: ticket, error: fetchError } = await supabase
+        .from('tickets')
+      .select('*')
+      .eq('id', ticketId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (ticket.assigned_to === currentUser.id) {
+      throw new Error('Ticket is already assigned to you');
+    }
+
+    // Use updateTicket for the actual update
+    await get().updateTicket(ticketId, {
+      assigned_to: currentUser.id,
+      status: 'in_progress'
+    });
   },
 
   updateTicketStatus: async (ticketId: string, status: TicketStatus) => {
+    // Use updateTicket directly with the new status
     await get().updateTicket(ticketId, {
       status,
       closed_at: status === 'closed' ? new Date().toISOString() : null,
@@ -524,33 +592,40 @@ export const useTicketStore = create<TicketState>((set, get) => ({
 
   fetchAgentDashboardData: async () => {
     try {
+      const currentUser = useAuthStore.getState().user;
+      const userProfile = useAuthStore.getState().profile;
+      
+      if (!currentUser || !userProfile || userProfile.role !== 'agent') {
+        throw new Error('Must be logged in as an agent to view dashboard');
+      }
+
       set({ loading: true, error: null });
+      
+      // Fetch agent stats
       const { data: agentStats, error: statsError } = await supabase
-        .rpc('get_agent_performance_stats');
+        .rpc('get_agent_performance_stats')
+        .single();
 
       if (statsError) throw statsError;
 
-      const currentUser = (await supabase.auth.getUser()).data.user;
-      if (!currentUser) throw new Error('No authenticated user found');
-
-      const { data: dashboardTickets, error: ticketsError } = await supabase
-        .from('tickets')
-        .select('id, subject, status, priority, created_at, updated_at')
-        // .eq('assigned_to', currentUser.id)
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: true })
-        .limit(10);
-
-      if (ticketsError) throw ticketsError;
+      // Fetch recent tickets using unified function
+      const dashboardTickets = await fetchTicketsUnified({
+        role: 'agent',
+        view: 'dashboard',
+        filters: {
+          assigned_to: currentUser.id
+        },
+        limit: 10
+      });
 
       set({ 
         agentStats,
-        dashboardTickets: dashboardTickets || [],
+        dashboardTickets,
         loading: false 
       });
     } catch (err) {
       const error = err as Error;
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       throw error;
     }
   },

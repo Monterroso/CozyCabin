@@ -8,6 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDistanceToNow } from 'date-fns';
 import type { TicketStatus, TicketPriority } from '@/lib/types/supabase';
+import { 
+  PRIORITY_OPTIONS,
+  PRIORITY_COLORS,
+  STATUS_COLORS,
+  STATUS_OPTIONS
+} from '@/lib/types/ticket'
+import { cn } from '@/lib/utils';
 
 export function TicketDetails() {
   const { user } = useAuth();
@@ -49,16 +56,15 @@ export function TicketDetails() {
 
   const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!comment.trim()) return;
+    if (!comment.trim() || !user?.id) return;
 
     try {
       setLoading(true);
       await addComment({
         ticket_id: selectedTicket.id,
-        user_id: user?.id || '',
+        user_id: user.id,
         content: comment,
-        is_internal: false,
-        attachments: [],
+        is_internal: false
       });
       setComment('');
     } catch (error) {
@@ -72,15 +78,15 @@ export function TicketDetails() {
     <Card className="h-full">
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div>
-          <CardTitle>{selectedTicket.title}</CardTitle>
+          <CardTitle>{selectedTicket.subject}</CardTitle>
           <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
             <span>#{selectedTicket.id}</span>
             <span>•</span>
             <span>Created {formatDistanceToNow(new Date(selectedTicket.created_at), { addSuffix: true })}</span>
           </div>
         </div>
-        <Badge variant={getStatusVariant(selectedTicket.status)}>
-          {selectedTicket.status}
+        <Badge variant="outline">
+          {selectedTicket.status.replace('_', ' ')}
         </Badge>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -97,10 +103,13 @@ export function TicketDetails() {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  {STATUS_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      <Badge className={cn("capitalize", STATUS_COLORS[value])}>
+                        {label}
+                      </Badge>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -115,10 +124,13 @@ export function TicketDetails() {
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  {PRIORITY_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      <Badge className={cn("capitalize", PRIORITY_COLORS[value])}>
+                        {label}
+                      </Badge>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

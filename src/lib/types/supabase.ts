@@ -426,3 +426,8 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+// Export the enum types directly from the Database type
+export type TicketStatus = Database['public']['Enums']['ticket_status']
+export type TicketPriority = Database['public']['Enums']['ticket_priority']
+export type UserRole = Database['public']['Enums']['user_role']

@@ -29,7 +29,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useTicketStore } from '@/stores/ticketStore'
 import { useAuth } from '@/hooks/useAuth'
-import { type Ticket, STATUS_COLORS, PRIORITY_COLORS } from '@/lib/types/ticket'
+import { 
+  type TicketRow, 
+  STATUS_COLORS, 
+  PRIORITY_COLORS,
+  STATUS_OPTIONS,
+  PRIORITY_OPTIONS 
+} from '@/lib/types/ticket'
 import { type TicketStatus, type TicketPriority } from '@/lib/types/supabase'
 import { cn } from '@/lib/utils'
 
@@ -38,8 +44,8 @@ const internalNoteSchema = z.object({
 })
 
 const ticketUpdateSchema = z.object({
-  status: z.enum(['open', 'in_progress', 'pending', 'closed', 'solved'] as const),
-  priority: z.enum(['urgent', 'high', 'normal', 'low', 'medium'] as const),
+  status: z.custom<TicketStatus>(),
+  priority: z.custom<TicketPriority>(),
   internal_note: z.string().optional(),
 })
 
@@ -47,7 +53,7 @@ type InternalNoteForm = z.infer<typeof internalNoteSchema>
 type TicketUpdateForm = z.infer<typeof ticketUpdateSchema>
 
 interface Props {
-  ticket: Ticket
+  ticket: TicketRow
 }
 
 export function AgentTicketManagement({ ticket }: Props) {
@@ -156,26 +162,13 @@ export function AgentTicketManagement({ ticket }: Props) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="open">
-                              <Badge className={cn("capitalize", STATUS_COLORS.open)}>
-                                Open
-                              </Badge>
-                            </SelectItem>
-                            <SelectItem value="in_progress">
-                              <Badge className={cn("capitalize", STATUS_COLORS.in_progress)}>
-                                In Progress
-                              </Badge>
-                            </SelectItem>
-                            <SelectItem value="pending">
-                              <Badge className={cn("capitalize", STATUS_COLORS.pending)}>
-                                Pending
-                              </Badge>
-                            </SelectItem>
-                            <SelectItem value="closed">
-                              <Badge className={cn("capitalize", STATUS_COLORS.closed)}>
-                                Closed
-                              </Badge>
-                            </SelectItem>
+                            {STATUS_OPTIONS.map(({ value, label }) => (
+                              <SelectItem key={value} value={value}>
+                                <Badge className={cn("capitalize", STATUS_COLORS[value])}>
+                                  {label}
+                                </Badge>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -199,26 +192,13 @@ export function AgentTicketManagement({ ticket }: Props) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="urgent">
-                              <Badge className={cn("capitalize", PRIORITY_COLORS.urgent)}>
-                                Urgent
-                              </Badge>
-                            </SelectItem>
-                            <SelectItem value="high">
-                              <Badge className={cn("capitalize", PRIORITY_COLORS.high)}>
-                                High
-                              </Badge>
-                            </SelectItem>
-                            <SelectItem value="normal">
-                              <Badge className={cn("capitalize", PRIORITY_COLORS.normal)}>
-                                Normal
-                              </Badge>
-                            </SelectItem>
-                            <SelectItem value="low">
-                              <Badge className={cn("capitalize", PRIORITY_COLORS.low)}>
-                                Low
-                              </Badge>
-                            </SelectItem>
+                            {PRIORITY_OPTIONS.map(({ value, label }) => (
+                              <SelectItem key={value} value={value}>
+                                <Badge className={cn("capitalize", PRIORITY_COLORS[value])}>
+                                  {label}
+                                </Badge>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />

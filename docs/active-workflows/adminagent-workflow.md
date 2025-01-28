@@ -1,5 +1,63 @@
 # Admin Agent Checklist
 
+# Important Architecture Guidelines
+Before proceeding with implementation, adhere to these critical guidelines to prevent code duplication:
+
+1. **Reuse Existing Types**: 
+   - All ticket-related types should be imported from `src/lib/types/ticket.ts`
+   - All Supabase types should be imported from `src/lib/types/supabase.ts`
+   - Never recreate types that exist elsewhere
+
+2. **Shared Business Logic**:
+   - All ticket-related operations should use the existing `ticketStore` from `src/stores/ticketStore.ts`
+   - Do not recreate ticket CRUD operations that already exist in the store
+   - Extend the existing store if new functionality is needed
+
+3. **Component Reuse**:
+   - Reuse existing components from `src/components/tickets/*`
+   - Particularly for ticket display, forms, and filters
+   - If a component needs modification, extend it rather than duplicate
+
+4. **API Layer Consistency**:
+   - All Supabase interactions should follow existing patterns
+   - Use the established Supabase client configuration
+   - Don't create new database access patterns if similar ones exist
+
+5. **State Management**:
+   - Continue using Zustand for state management
+   - Integrate new features into existing stores where appropriate
+   - Avoid creating parallel state management solutions
+
+# Tech Stack Implementation Guidelines
+
+1. **UI Components & Styling**:
+   - Use Shadcn components as base building blocks
+   - Follow MountainLodge theme colors from `src/theme/colors.ts`
+   - Maintain Tailwind utility-first approach
+   - Keep animations subtle and performant (150-300ms transitions)
+   - Ensure WCAG AA compliance for all UI elements
+
+2. **Form Handling**:
+   - Use React Hook Form + Zod for all form validations
+   - Import existing Zod schemas from `src/lib/schemas/`
+   - Leverage Shadcn form components for consistency
+
+3. **State Management Rules**:
+   - Create or extend Zustand stores for AI-related state
+   - Keep real-time subscriptions in dedicated hooks
+   - Clean up subscriptions properly on unmount
+
+4. **File Structure**:
+   - Place Edge Functions in `supabase/functions/`
+   - Keep components under 250 lines
+   - Add JSDoc/TSDoc comments for all exports
+   - Follow established folder structure
+
+5. **Testing Requirements**:
+   - Write Jest tests for critical paths
+   - Implement error boundaries for AI components
+   - Use Sentry for production error tracking
+
 Below is a step-by-step checklist of tasks to implement your free-flowing Admin AI system using:
 
 • Supabase (with pgvector)  
@@ -10,14 +68,14 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 1. Create a “CHECKLIST.md” (This File)
+## 1. Create a "CHECKLIST.md" (This File)
 1. [X] In your project root, create a new file named CHECKLIST.md (this file).  
    - Purpose: Track the tasks needed for your Admin AI system.  
    - State: No code change yet, just documentation.
 
 ---
 
-## 2. Create “supabase/functions/adminAgent/index.ts”
+## 2. Create "supabase/functions/adminAgent/index.ts"
 1. [ ] Navigate to supabase/functions/adminAgent/ and create an index.ts file (if it does not already exist).
 2. [ ] Inside index.ts, set up the basic handle for receiving requests in Deno.  
    - Example:
@@ -39,11 +97,11 @@ To keep each step manageable, each checklist item refers to edits in exactly one
      });
      ```
    - Purpose: This is your Supabase Edge Function entry point.  
-   - State: A new serverless function that can handle the admin’s requests for ticket summarization, categorization, assignment, etc.
+   - State: A new serverless function that can handle the admin's requests for ticket summarization, categorization, assignment, etc.
 
 ---
 
-## 3. Create “supabase/functions/tools/agentOrchestrator.ts”
+## 3. Create "supabase/functions/tools/agentOrchestrator.ts"
 1. [ ] In supabase/functions/tools/, create a file named agentOrchestrator.ts.  
 2. [ ] Put high-level orchestration logic here (using LangChain or any direct LLM calls). For example:
    ```ts:supabase/functions/tools/agentOrchestrator.ts
@@ -75,12 +133,12 @@ To keep each step manageable, each checklist item refers to edits in exactly one
      return "I'm not sure how to handle that yet. Please try a different query.";
    }
    ```
-   - Purpose: Central “agent” logic. It decides which tool function to call for each user query.  
+   - Purpose: Central "agent" logic. It decides which tool function to call for each user query.  
    - State: A single orchestration file to keep your function entry point simpler.
 
 ---
 
-## 4. Create “supabase/functions/tools/getUnassignedTickets.ts”
+## 4. Create "supabase/functions/tools/getUnassignedTickets.ts"
 1. [ ] In supabase/functions/tools/, create a file named getUnassignedTickets.ts.
 2. [ ] Fetch tickets from Supabase with assigned_to = null, using the Deno-compatible Supabase client:
    ```ts:supabase/functions/tools/getUnassignedTickets.ts
@@ -107,11 +165,11 @@ To keep each step manageable, each checklist item refers to edits in exactly one
    }
    ```
    - Purpose: Provide a Deno-friendly function for retrieving unassigned tickets.  
-   - State: Returns an array of ticket rows. Doesn’t alter your DB.
+   - State: Returns an array of ticket rows. Doesn't alter your DB.
 
 ---
 
-## 5. Create “supabase/functions/tools/summarizeTickets.ts”
+## 5. Create "supabase/functions/tools/summarizeTickets.ts"
 1. [ ] In supabase/functions/tools/, create a file named summarizeTickets.ts.
 2. [ ] Use LangChain to summarize an array of ticket data:
    ```ts:supabase/functions/tools/summarizeTickets.ts
@@ -145,12 +203,12 @@ To keep each step manageable, each checklist item refers to edits in exactly one
      return response.text;
    }
    ```
-   - Purpose: Provide a short text summary of multiple tickets using LangChain’s ChatOpenAI model.  
+   - Purpose: Provide a short text summary of multiple tickets using LangChain's ChatOpenAI model.  
    - State: No database changes. Returns a string summary.
 
 ---
 
-## 6. Create “supabase/functions/tools/categorizeTicket.ts”
+## 6. Create "supabase/functions/tools/categorizeTicket.ts"
 1. [ ] In supabase/functions/tools/, create categorizeTicket.ts.
 2. [ ] Use LangChain or direct OpenAI calls to predict a category:
    ```ts:supabase/functions/tools/categorizeTicket.ts
@@ -179,9 +237,9 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 7. Create “supabase/functions/tools/updateTicket.ts”
+## 7. Create "supabase/functions/tools/updateTicket.ts"
 1. [ ] In supabase/functions/tools/, create a file named updateTicket.ts.
-2. [ ] This function updates the “tickets” table to set new tags, assigned_to, or other fields:
+2. [ ] This function updates the "tickets" table to set new tags, assigned_to, or other fields:
    ```ts:supabase/functions/tools/updateTicket.ts
    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -212,8 +270,8 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 8. (Optional) Create “supabase/functions/tools/insertAiLogRecord.ts”
-1. [ ] In supabase/functions/tools/, make a file named insertAiLogRecord.ts if you want to track metrics in an “ai_logs” table.
+## 8. (Optional) Create "supabase/functions/tools/insertAiLogRecord.ts"
+1. [ ] In supabase/functions/tools/, make a file named insertAiLogRecord.ts if you want to track metrics in an "ai_logs" table.
 2. [ ] Insert a record whenever you do an AI action:
    ```ts:supabase/functions/tools/insertAiLogRecord.ts
    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -237,15 +295,15 @@ To keep each step manageable, each checklist item refers to edits in exactly one
      }
    }
    ```
-   - Purpose: Keep track of usage, success/fail events, or timing data in “ai_logs.”  
+   - Purpose: Keep track of usage, success/fail events, or timing data in "ai_logs."  
    - State: Each call inserts a row into the logging table.
 
 ---
 
-## 9. Add a “pgvector” Table and File Chunking (If Needed for Documents)
+## 9. Add a "pgvector" Table and File Chunking (If Needed for Documents)
 Sometimes you want the agent to read large documents or knowledge base to answer ticket-related queries.
 
-### Step 9a: Create “supabase/functions/tools/setupPgVector.ts” (One-file edit)
+### Step 9a: Create "supabase/functions/tools/setupPgVector.ts" (One-file edit)
 1. [ ] Make a function to help with pgvector indexing or upserts. 
    ```ts:supabase/functions/tools/setupPgVector.ts
    // Pseudocode for how you might initialize a table with a "vector" column
@@ -253,10 +311,10 @@ Sometimes you want the agent to read large documents or knowledge base to answer
    // Make sure your supabase is enabled with the pgvector extension.
    ```
    - Purpose: Provide any custom logic for vector-based searching or storing embeddings.  
-   - State: This step might also involve a Supabase migration so your “embedding” column is a vector type.
+   - State: This step might also involve a Supabase migration so your "embedding" column is a vector type.
 
-### Step 9b: Create “supabase/functions/tools/fileChunking.ts” (One-file edit)
-1. [ ] Implement a function that splits large files or text into smaller chunks, then stores embeddings in your “pgvector” table:
+### Step 9b: Create "supabase/functions/tools/fileChunking.ts" (One-file edit)
+1. [ ] Implement a function that splits large files or text into smaller chunks, then stores embeddings in your "pgvector" table:
    ```ts:supabase/functions/tools/fileChunking.ts
    import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 
@@ -273,83 +331,145 @@ Sometimes you want the agent to read large documents or knowledge base to answer
 ---
 
 ## 10. Create a Minimal Front-End to Call the Edge Function
-### Step 10a: “src/pages/AdminConsole.tsx”
-1. [ ] In your React project (outside of supabase/functions), add a page or component named AdminConsole.tsx.
-2. [ ] Implement a chat interface that calls your Edge Function endpoint:
-   ```tsx:src/pages/AdminConsole.tsx
-   import React, { useState } from "react";
+### Step 10a: "src/pages/admin/AdminConsole.tsx"
+1. [ ] Create the admin console page using our established component architecture:
+   ```tsx:src/pages/admin/AdminConsole.tsx
+   import { useState } from "react";
+   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+   import { Button } from "@/components/ui/button";
+   import { Input } from "@/components/ui/input";
+   import { ScrollArea } from "@/components/ui/scroll-area";
+   import { useTicketStore } from "@/stores/ticketStore";
+   import { useForm } from "react-hook-form";
+   import { zodResolver } from "@hookform/resolvers/zod";
+   import { adminMessageSchema } from "@/lib/schemas/admin";
+   import type { Message } from "@/lib/types/admin";
 
    export default function AdminConsole() {
-     const [messages, setMessages] = useState<
-       { role: "user" | "assistant"; content: string }[]
-     >([]);
-     const [input, setInput] = useState("");
-
-     async function sendMessage() {
-       const newMessage = { role: "user", content: input };
-       setMessages([...messages, newMessage]);
-       setInput("");
-
-       // Post to your deployed edge function endpoint
-       const response = await fetch("/api/edge-proxy", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ messages, newUserMessage: input }),
-       }).then((r) => r.json());
-
-       setMessages([...messages, newMessage, { role: "assistant", content: response.reply }]);
-     }
+     const [messages, setMessages] = useState<Message[]>([]);
+     const { handleSubmit, register, reset } = useForm({
+       resolver: zodResolver(adminMessageSchema)
+     });
 
      return (
-       <div>
-         <h1>Admin AI Console</h1>
-         <div style={{ border: "1px solid gray", height: "300px", overflowY: "auto" }}>
-           {messages.map((m, i) => (
-             <p key={i}>
-               <strong>{m.role}:</strong> {m.content}
-             </p>
-           ))}
-         </div>
-         <input
-           value={input}
-           onChange={(e) => setInput(e.target.value)}
-           placeholder="Ask the agent something..."
-         />
-         <button onClick={sendMessage}>Send</button>
-       </div>
+       <Card className="w-full max-w-4xl mx-auto mt-6">
+         <CardHeader>
+           <CardTitle className="text-lodge-brown">Admin AI Console</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <ScrollArea className="h-[400px] border rounded-md p-4">
+             {messages.map((m, i) => (
+               <div key={i} className={`mb-4 ${m.role === 'assistant' ? 'bg-cabin-cream' : ''} p-3 rounded-lg`}>
+                 <strong className="text-pine-green">{m.role}:</strong> {m.content}
+               </div>
+             ))}
+           </ScrollArea>
+           <form onSubmit={handleSubmit(async (data) => {
+             // Form submission logic here
+           })}>
+             <div className="flex gap-2 mt-4">
+               <Input
+                 {...register('content')}
+                 placeholder="Ask the agent something..."
+                 className="flex-1"
+               />
+               <Button type="submit" className="bg-lodge-brown hover:bg-lodge-brown/90">
+                 Send
+               </Button>
+             </div>
+           </form>
+         </CardContent>
+       </Card>
      );
    }
    ```
-   - Purpose: Provide a simple UI for your admin to type requests and see the agent’s responses.
-   - State: Each user message is added to local React state, and each response from the function is appended as well.  
+   - Purpose: Provide a modern, accessible UI using our design system.
+   - State: Uses Shadcn components, MountainLodge theme, and proper form handling.
 
-### Step 10b: “src/pages/api/edge-proxy.ts” (Optional if you’re using Next.js)
-1. [ ] Create an API route that proxies requests to your Supabase Edge Function:
-   ```ts:src/pages/api/edge-proxy.ts
-   import type { NextApiRequest, NextApiResponse } from "next";
-
-   export default async function edgeProxy(req: NextApiRequest, res: NextApiResponse) {
-     try {
-       const result = await fetch("https://<PROJECT>.functions.supabase.co/adminAgent", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify(req.body),
-       });
-       const data = await result.json();
-       res.status(200).json(data);
-     } catch (error) {
-       res.status(500).json({ reply: "Error calling Edge Function" });
-     }
+### Step 10b: "src/stores/adminStore.ts"
+1. [ ] Create a Zustand store for admin AI state management:
+   ```ts:src/stores/adminStore.ts
+   import { create } from 'zustand';
+   import { devtools } from 'zustand/middleware';
+   import type { Message } from '@/lib/types/admin';
+   
+   interface AdminStore {
+     messages: Message[];
+     isProcessing: boolean;
+     addMessage: (message: Message) => void;
+     clearMessages: () => void;
+     setProcessing: (status: boolean) => void;
    }
+
+   export const useAdminStore = create<AdminStore>()(
+     devtools(
+       (set) => ({
+         messages: [],
+         isProcessing: false,
+         addMessage: (message) => 
+           set((state) => ({ messages: [...state.messages, message] })),
+         clearMessages: () => set({ messages: [] }),
+         setProcessing: (status) => set({ isProcessing: status }),
+       }),
+       { name: 'admin-store' }
+     )
+   );
    ```
-   - Purpose: Let your admin front end talk to the deployed Edge Function.  
-   - State: No direct DB changes; just a pass-through.
+   - Purpose: Centralize admin AI state management using Zustand.
+   - State: Maintains chat history and processing states.
 
 ---
+
+## Types and Schemas Setup
+
+### Step 1a: "src/lib/types/admin.ts"
+1. [ ] Create type definitions for admin-related structures:
+   ```ts:src/lib/types/admin.ts
+   import { z } from 'zod';
+   import type { Database } from './supabase';
+
+   export type Message = {
+     role: 'user' | 'assistant';
+     content: string;
+     timestamp: Date;
+   };
+
+   export type AdminAgentState = {
+     currentSession: string | null;
+     lastUpdate: Date | null;
+     activeFilters: string[];
+   };
+
+   // Type-safe database references
+   export type TicketRow = Database['public']['Tables']['tickets']['Row'];
+   export type AgentRow = Database['public']['Tables']['agents']['Row'];
+   ```
+
+### Step 1b: "src/lib/schemas/admin.ts"
+1. [ ] Define Zod schemas for validation:
+   ```ts:src/lib/schemas/admin.ts
+   import { z } from 'zod';
+
+   export const adminMessageSchema = z.object({
+     content: z.string().min(1, 'Message cannot be empty').max(1000, 'Message too long'),
+   });
+
+   export const adminFilterSchema = z.object({
+     dateRange: z.object({
+       start: z.date().optional(),
+       end: z.date().optional(),
+     }),
+     status: z.enum(['open', 'closed', 'in_progress']).optional(),
+     priority: z.enum(['low', 'medium', 'high']).optional(),
+   });
+
+   export type AdminMessageInput = z.infer<typeof adminMessageSchema>;
+   export type AdminFilterInput = z.infer<typeof adminFilterSchema>;
+   ```
 
 ## Final Notes
 • Run "yarn supabase functions deploy adminAgent" to deploy your Edge Function with all these files included.  
 • Confirm your environment variables are set in the Supabase dashboard for Deno runtime (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LangChain keys, etc.).  
-• With each step completed, your “tools” can be orchestrated by the agent. You have the option to add pgvector embeddings, file chunking, and LangSmith for advanced logging or chain visualization.  
+• With each step completed, your "tools" can be orchestrated by the agent. You have the option to add pgvector embeddings, file chunking, and LangSmith for advanced logging or chain visualization.  
 
 By following these checklist items in order, you keep each step confined to editing a single file or a single set of small substeps, making it easier to manage in your codebase.

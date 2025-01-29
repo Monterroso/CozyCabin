@@ -9,18 +9,27 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useAdminStore } from "@/stores/adminStore";
+import { useTicketStore } from "@/stores/ticketStore";
 import { useToast } from "@/components/ui/use-toast";
 import { adminMessageFormSchema } from "@/lib/schemas/admin";
 import type { AdminMessageFormData, Message } from "@/lib/types/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AgentTicketQueue } from "@/components/tickets/AgentTicketQueue";
+import { useEffect } from "react";
 
 export default function AdminConsole() {
   const { messages, isProcessing, error, sendMessage } = useAdminStore();
+  const { fetchTickets, loading } = useTicketStore();
   const { toast } = useToast();
   
   const { handleSubmit, register, reset, formState: { errors } } = useForm<AdminMessageFormData>({
     resolver: zodResolver(adminMessageFormSchema)
   });
+
+  useEffect(() => {
+    // Fetch all tickets when the component mounts
+    fetchTickets();
+  }, [fetchTickets]);
 
   const onSubmit = async (data: AdminMessageFormData) => {
     try {
@@ -116,10 +125,13 @@ export default function AdminConsole() {
               <CardTitle>Tickets Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* TODO: Add TicketList component here */}
-              <div className="text-muted-foreground">
-                Ticket management interface coming soon...
-              </div>
+              {loading ? (
+                <div className="flex h-[50vh] items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-pine-green" />
+                </div>
+              ) : (
+                <AgentTicketQueue />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

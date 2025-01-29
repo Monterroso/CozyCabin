@@ -279,85 +279,71 @@ To keep each step manageable, each checklist item refers to edits in exactly one
 
 ---
 
-## 9. (Optional) Create "supabase/functions/tools/insertAiLogRecord.ts"
-1. [ ] In supabase/functions/tools/, make a file named insertAiLogRecord.ts if you want to track metrics in an "ai_logs" table.
-2. [ ] Insert a record whenever you do an AI action:
-   ```ts:supabase/functions/tools/insertAiLogRecord.ts
-   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+## 9. AI Operation Logging
+1. [X] Created `ai_logs` table to track AI operations:
+   - Fields: `id`, `feature_name`, `success`, `error_type`, `response_time_ms`, `metadata`, `created_at`
+   - RLS policies to ensure only admins can view logs
+   - Indexes for common queries (`feature_name`, `success`, `created_at`)
 
-   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-   const supabase = createClient(supabaseUrl, supabaseKey);
+2. [X] Implemented `withAiLogging` higher-order function:
+   - Automatically logs execution time
+   - Tracks success/failure states
+   - Safely stringifies arguments and results
+   - Handles error capturing
 
-   export async function insertAiLogRecord(params: {
-     feature_name: string;
-     success: boolean;
-     error_type?: string;
-     response_time_ms?: number;
-   }) {
-     const { error } = await supabase
-       .from("ai_logs")
-       .insert([params]);
+3. [X] Integrated logging with AI tools:
+   - `categorizeTicket.ts`
+   - `summarizeTickets.ts`
+   - `agentOrchestrator.ts`
 
-     if (error) {
-       console.error("Failed to insert AI log record:", error);
-     }
-   }
-   ```
-   - Purpose: Keep track of usage, success/fail events, or timing data in "ai_logs."  
-   - State: Each call inserts a row into the logging table.
+## 10. Vector Storage Setup
+1. [X] Created migration `013_setup_pgvector.sql`:
+   - Enabled pgvector extension
+   - Added `embedding` column (1536 dimensions) to tickets table
+   - Created IVFFlat index for similarity search
+   - Implemented `match_tickets` function
+   - Added trigger for automatic embedding updates
+   - Configured RLS policies
 
----
+2. [X] Created vector store interface `vectorStore.ts`:
+   - Initialized Supabase client and OpenAI embeddings
+   - Set up LangChain's SupabaseVectorStore
+   - Implemented `updateTicketEmbeddings` function
+   - Implemented `findSimilarTickets` function
+   - Included AI logging for vector operations
 
-## 10. Upgrade to Advanced Agent Pattern with Vector Stores
-This is an architectural upgrade that enhances our basic implementation with more sophisticated query handling.
+3. [ ] Next Steps:
+   a. Create QA chains using the vector store
+   b. Implement Edge Function for embedding trigger
+   c. Create helper functions for semantic search
+   d. Add tests for vector store functionality
 
-### Step 10a: Set up Vector Stores
-1. [ ] Create vector stores for tickets and customer data:
-   ```typescript
-   const ticketVectorStore = new Chroma(
-     "tickets",
-     new OpenAIEmbeddings({
-       openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
-     })
-   );
-   ```
+## Potential Issues to Address:
 
-### Step 10b: Create Specialized QA Chains
-1. [ ] Implement RetrievalQA chains for different data types:
-   ```typescript
-   const ticketQA = RetrievalQA.fromChainType({
-     llm: chatModel,
-     chainType: "stuff",
-     retriever: ticketVectorStore.asRetriever(),
-   });
-   ```
+1. **Performance Considerations**:
+   - Large embedding updates might need batching
+   - IVFFlat index may need tuning based on data size
+   - Consider caching frequently accessed embeddings
 
-### Step 10c: Define Tool-based Architecture
-1. [ ] Convert existing functions into LangChain tools:
-   ```typescript
-   const tools = [
-     new Tool({
-       name: "Ticket Query System",
-       func: ticketQA.run,
-       description: "Use when you need to answer questions about tickets...",
-     }),
-     // ... other tools
-   ];
-   ```
+2. **Error Handling**:
+   - Need robust error handling for OpenAI API failures
+   - Handle cases where embeddings fail to generate
+   - Implement retry logic for transient failures
 
-### Step 10d: Update Agent Orchestrator
-1. [ ] Modify agentOrchestrator.ts to use the tool-based approach:
-   ```typescript
-   const agent = initializeAgent(
-     tools,
-     chatModel,
-     {
-       agentType: AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-       verbose: true
-     }
-   );
-   ```
+3. **Security**:
+   - Ensure proper RLS policies for all new tables
+   - Validate embedding access patterns
+   - Monitor API key usage and rate limits
+
+4. **Maintenance**:
+   - Plan for regular index maintenance
+   - Consider embedding update strategies
+   - Monitor storage growth from embeddings
+
+5. **Cost Management**:
+   - Track OpenAI API usage for embeddings
+   - Implement rate limiting if needed
+   - Consider caching strategies to reduce API calls
 
 ## 11. Implement Vector Storage (If Needed for Documents)
 Sometimes you want the agent to read large documents or knowledge base to answer ticket-related queries.
@@ -642,3 +628,97 @@ This pattern is particularly useful when:
 • With each step completed, your "tools" can be orchestrated by the agent. You have the option to add pgvector embeddings, file chunking, and LangSmith for advanced logging or chain visualization.  
 
 By following these checklist items in order, you keep each step confined to editing a single file or a single set of small substeps, making it easier to manage in your codebase.
+
+## Completed Tasks:
+
+### 9. AI Operation Logging ✅
+1. [X] Created `ai_logs` table:
+   - Fields: `id`, `feature_name`, `success`, `error_type`, `response_time_ms`, `metadata`, `created_at`
+   - Added RLS policies for admin-only access
+   - Created indexes for efficient querying
+
+2. [X] Implemented `withAiLogging` higher-order function:
+   - Automatic execution time tracking
+   - Success/failure state logging
+   - Safe argument and result stringification
+   - Error capturing and logging
+
+3. [X] Integrated logging with AI tools:
+   - `categorizeTicket.ts`
+   - `summarizeTickets.ts`
+   - `agentOrchestrator.ts`
+
+### 10. Vector Storage Setup ✅
+1. [X] Created migration `013_setup_pgvector.sql`:
+   - Enabled pgvector extension
+   - Added `embedding` column to tickets table
+   - Created IVFFlat index for similarity search
+   - Implemented `match_tickets` function
+   - Added RLS policies
+
+2. [X] Created vector store interface `vectorStore.ts`:
+   - Initialized Supabase client and OpenAI embeddings
+   - Set up LangChain's SupabaseVectorStore
+   - Implemented `updateTicketEmbeddings` function
+   - Implemented `findSimilarTickets` function
+   - Added AI logging for vector operations
+
+### 11. Message Vector Storage ✅
+1. [X] Created migration `014_message_embeddings.sql`:
+   - Added embedding column to `ticket_comments`
+   - Created similarity search index
+   - Implemented `match_messages` function
+   - Created message embedding queue table
+   - Added database triggers for automatic queueing
+
+2. [X] Implemented queue processing system:
+   - Created `processEmbeddingQueue.ts` function
+   - Added batch processing with retries
+   - Implemented error handling and logging
+   - Added RLS policies for security
+
+## Remaining Tasks:
+
+### 12. QA Chain Implementation
+1. [ ] Create specialized QA chains:
+   - Implement ticket solution finder
+   - Create pattern analysis chain
+   - Add chain for finding related tickets
+
+2. [ ] Add chain result caching:
+   - Implement caching strategy
+   - Add cache invalidation rules
+   - Monitor cache hit rates
+
+### 13. Background Jobs
+1. [ ] Create backfill script for existing messages:
+   - Script to queue existing messages
+   - Progress tracking
+   - Error handling and reporting
+
+2. [ ] Implement queue monitoring:
+   - Dashboard for queue status
+   - Alert system for failed jobs
+   - Performance metrics tracking
+
+### 14. Testing and Validation
+1. [ ] Add unit tests:
+   - Test vector search functions
+   - Validate embedding generation
+   - Test QA chain responses
+
+2. [ ] Add integration tests:
+   - Test end-to-end workflows
+   - Validate security policies
+   - Test error handling
+
+### 15. Documentation and Monitoring
+1. [ ] Create technical documentation:
+   - System architecture overview
+   - API documentation
+   - Maintenance procedures
+
+2. [ ] Set up monitoring:
+   - OpenAI API usage tracking
+   - Performance monitoring
+   - Error rate tracking

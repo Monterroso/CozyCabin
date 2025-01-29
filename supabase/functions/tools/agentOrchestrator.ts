@@ -4,6 +4,7 @@ import { categorizeTicket } from "./categorizeTicket.ts";
 import { updateTicket } from "./updateTicket.ts";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { HumanMessage, SystemMessage } from "langchain/schema";
+import { withAiLogging } from "./aiLogger";
 
 // Initialize the ChatOpenAI model
 const chatModel = new ChatOpenAI({
@@ -17,10 +18,10 @@ export interface Message {
   content: string;
 }
 
-export async function handleAdminAgentRequest(
+const baseHandleAdminAgentRequest = async (
   conversationHistory: Message[],
   newUserMessage: string
-): Promise<string> {
+): Promise<string> => {
   try {
     // Create system message for context
     const systemMessage = new SystemMessage(
@@ -63,4 +64,10 @@ export async function handleAdminAgentRequest(
     console.error("Error in handleAdminAgentRequest:", error);
     return "I encountered an error processing your request. Please try again or rephrase your question.";
   }
-} 
+};
+
+// Wrap the base function with logging
+export const handleAdminAgentRequest = withAiLogging(
+  "admin_agent_request",
+  baseHandleAdminAgentRequest
+); 

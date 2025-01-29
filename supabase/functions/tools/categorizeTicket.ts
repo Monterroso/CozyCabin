@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { SystemMessage, HumanMessage } from "langchain/schema";
 import type { Database } from "../_shared/database.types";
+import { withAiLogging } from "./aiLogger";
 
 type Ticket = Database["public"]["Tables"]["tickets"]["Row"] & {
   profiles?: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -14,11 +15,11 @@ const chatModel = new ChatOpenAI({
   modelName: "gpt-4-1106-preview"
 });
 
-export async function categorizeTicket(ticket: Ticket): Promise<{
+const baseCategorizeTicket = async (ticket: Ticket): Promise<{
   category: TicketCategory;
   confidence: number;
   reasoning: string;
-}> {
+}> => {
   try {
     const systemPrompt = new SystemMessage(
       `You are an expert ticket categorization system. Analyze the ticket and:
@@ -83,9 +84,15 @@ Status: ${ticket.status}
       reasoning: `Error: ${error.message}`
     };
   }
-}
+};
 
 // Type guard to validate the category
 function isValidTicketCategory(category: string): category is TicketCategory {
   return ["billing", "technical", "account", "feature_request", "bug", "security", "other"].includes(category);
-} 
+}
+
+// Wrap the base function with logging
+export const categorizeTicket = withAiLogging(
+  "categorize_ticket",
+  baseCategorizeTicket
+); 

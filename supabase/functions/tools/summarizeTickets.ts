@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { HumanMessage, SystemMessage } from "langchain/schema";
 import type { Database } from "../_shared/database.types";
+import { withAiLogging } from "./aiLogger";
 
 type Ticket = Database["public"]["Tables"]["tickets"]["Row"] & {
   profiles?: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -12,7 +13,7 @@ const chatModel = new ChatOpenAI({
   modelName: "gpt-4-1106-preview"
 });
 
-export async function summarizeTickets(tickets: Ticket[]): Promise<string> {
+const baseSummarizeTickets = async (tickets: Ticket[]): Promise<string> => {
   if (tickets.length === 0) return "No tickets to summarize.";
 
   // Format tickets with all relevant information
@@ -49,4 +50,10 @@ export async function summarizeTickets(tickets: Ticket[]): Promise<string> {
     console.error("Error in summarizeTickets:", error);
     return `Error generating summary: ${error.message}. Raw ticket count: ${tickets.length}`;
   }
-} 
+};
+
+// Wrap the base function with logging
+export const summarizeTickets = withAiLogging(
+  "summarize_tickets",
+  baseSummarizeTickets
+); 

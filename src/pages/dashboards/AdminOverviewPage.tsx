@@ -14,6 +14,8 @@ import {
   TrendingUp,
   UserPlus,
   Settings2,
+  Bot,
+  ListTodo,
 } from 'lucide-react'
 
 export default function AdminOverviewPage() {
@@ -37,6 +39,30 @@ export default function AdminOverviewPage() {
           <div className="text-left">
             <div className="font-semibold">Invite Users</div>
             <div className="text-xs text-muted-foreground">Send invites to new users</div>
+          </div>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-20 justify-start gap-4"
+          onClick={() => navigate('/admin/console')}
+        >
+          <Bot className="h-5 w-5" />
+          <div className="text-left">
+            <div className="font-semibold">AI Console</div>
+            <div className="text-xs text-muted-foreground">AI-powered assistance</div>
+          </div>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-20 justify-start gap-4"
+          onClick={() => navigate('/admin/tickets')}
+        >
+          <ListTodo className="h-5 w-5" />
+          <div className="text-left">
+            <div className="font-semibold">Ticket Management</div>
+            <div className="text-xs text-muted-foreground">View and manage tickets</div>
           </div>
         </Button>
 

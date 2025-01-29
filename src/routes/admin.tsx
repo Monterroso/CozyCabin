@@ -7,8 +7,10 @@ import { lazy } from "react";
 import type { AppRoute } from "./config";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import AdminOverviewPage from "@/pages/dashboards/AdminOverviewPage";
+import AdminConsole from "@/pages/admin/AdminConsole";
 
 const InvitesPage = lazy(() => import("@/pages/admin/InvitesPage"));
+const TicketManagementPage = lazy(() => import("@/pages/tickets/AgentTicketListPage"));
 
 export const adminRoutes: AppRoute[] = [
   {
@@ -26,6 +28,18 @@ export const adminRoutes: AppRoute[] = [
       {
         path: "invites",
         element: InvitesPage,
+        protected: true,
+        allowedRoles: ['admin'],
+      },
+      {
+        path: "console",
+        element: AdminConsole,
+        protected: true,
+        allowedRoles: ['admin'],
+      },
+      {
+        path: "tickets",
+        element: TicketManagementPage,
         protected: true,
         allowedRoles: ['admin'],
       },

@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,31 +36,22 @@ export default function AdminConsole() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <Tabs defaultValue="tickets" className="space-y-4">
+    <DashboardLayout>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Admin Console</h1>
+        <p className="text-muted-foreground">AI Assistant & Ticket Management</p>
+      </div>
+
+      <Tabs defaultValue="ai" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="tickets">Tickets Overview</TabsTrigger>
           <TabsTrigger value="ai">AI Assistant</TabsTrigger>
+          <TabsTrigger value="tickets">Tickets Overview</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tickets" className="space-y-4">
-          <Card className="bg-cabin-cream border-pine-green/20">
-            <CardHeader>
-              <CardTitle className="text-lodge-brown">Tickets Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* TODO: Add ticket list component */}
-              <div className="text-twilight-gray">
-                Ticket overview coming soon...
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="ai">
-          <Card className="bg-cabin-cream border-pine-green/20">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lodge-brown">Admin AI Console</CardTitle>
+              <CardTitle>AI Assistant</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[600px] border rounded-md p-4 mb-4">
@@ -95,7 +87,6 @@ export default function AdminConsole() {
                   />
                   <Button 
                     type="submit"
-                    className="bg-lodge-brown hover:bg-lodge-brown/90"
                     disabled={isProcessing}
                   >
                     {isProcessing ? (
@@ -118,7 +109,21 @@ export default function AdminConsole() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="tickets">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tickets Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* TODO: Add TicketList component here */}
+              <div className="text-muted-foreground">
+                Ticket management interface coming soon...
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
-    </div>
+    </DashboardLayout>
   );
 } 

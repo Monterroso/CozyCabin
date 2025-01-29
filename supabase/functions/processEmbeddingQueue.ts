@@ -1,7 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { withAiLogging } from "./tools/aiLogger";
-import type { Database } from "./_shared/database.types";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { OpenAIEmbeddings } from "npm:langchain/embeddings/openai";
+import { withAiLogging } from "./tools/aiLogger.ts";
+import type { Database } from "./_shared/database.types.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

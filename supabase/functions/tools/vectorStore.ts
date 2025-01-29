@@ -1,8 +1,9 @@
-import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../_shared/database.types";
-import { withAiLogging } from "./aiLogger";
+import { RecursiveCharacterTextSplitter } from "npm:langchain/text_splitter";
+import { SupabaseVectorStore } from "npm:langchain/vectorstores/supabase";
+import { OpenAIEmbeddings } from "npm:langchain/embeddings/openai";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import type { Database } from "../_shared/database.types.ts";
+import { withAiLogging } from "./aiLogger.ts";
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

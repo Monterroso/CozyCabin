@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import type { Database } from "../_shared/database.types";
 
 // Initialize Supabase client

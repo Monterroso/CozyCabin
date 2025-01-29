@@ -1,10 +1,10 @@
-import { getUnassignedTickets } from "./getUnassignedTickets.ts";
 import { summarizeTickets } from "./summarizeTickets.ts";
-import { categorizeTicket } from "./categorizeTicket.ts";
+import { getUnassignedTickets } from "./getUnassignedTickets.ts";
 import { updateTicket } from "./updateTicket.ts";
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { HumanMessage, SystemMessage } from "langchain/schema";
-import { withAiLogging } from "./aiLogger";
+import { withAiLogging } from "./aiLogger.ts";
+import { ChatOpenAI } from "npm:langchain/chat_models/openai";
+import { HumanMessage, SystemMessage } from "npm:langchain/schema";
+import { categorizeTicket } from "./categorizeTicket.ts";
 
 // Initialize the ChatOpenAI model
 const chatModel = new ChatOpenAI({

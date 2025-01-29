@@ -1,8 +1,8 @@
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { RetrievalQAChain } from "langchain/chains";
-import { PromptTemplate } from "langchain/prompts";
-import { vectorStore } from "./vectorStore";
-import { withAiLogging } from "./aiLogger";
+import { ChatOpenAI } from "npm:langchain/chat_models/openai";
+import { RetrievalQAChain } from "npm:langchain/chains";
+import { PromptTemplate } from "npm:langchain/prompts";
+import { vectorStore } from "./vectorStore.ts";
+import { withAiLogging } from "./aiLogger.ts";
 
 const chatModel = new ChatOpenAI({
   openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
@@ -45,7 +45,7 @@ const baseTicketQA = async (question: string) => {
   return {
     answer: response.text,
     sources: response.sourceDocuments?.map(doc => doc.metadata)
-  };
+};
 };
 
 // Wrap with logging

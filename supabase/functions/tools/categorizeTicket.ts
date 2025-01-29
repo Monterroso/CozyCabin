@@ -1,5 +1,5 @@
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { SystemMessage, HumanMessage } from "langchain/schema";
+import { ChatOpenAI } from "npm:langchain/chat_models/openai";
+import { SystemMessage, HumanMessage } from "npm:langchain/schema";
 import type { Database } from "../_shared/database.types";
 import { withAiLogging } from "./aiLogger";
 

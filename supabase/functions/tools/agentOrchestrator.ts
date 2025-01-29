@@ -2,8 +2,8 @@ import { summarizeTickets } from "./summarizeTickets.ts";
 import { getUnassignedTickets } from "./getUnassignedTickets.ts";
 import { updateTicket } from "./updateTicket.ts";
 import { withAiLogging } from "./aiLogger.ts";
-import { ChatOpenAI } from "npm:langchain/chat_models/openai";
-import { HumanMessage, SystemMessage } from "npm:langchain/schema";
+import { ChatOpenAI } from "https://esm.sh/langchain@0.0.197/chat_models/openai";
+import { HumanMessage, SystemMessage } from "https://esm.sh/langchain@0.0.197/schema";
 import { categorizeTicket } from "./categorizeTicket.ts";
 
 // Initialize the ChatOpenAI model

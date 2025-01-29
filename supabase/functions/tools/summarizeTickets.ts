@@ -20,11 +20,12 @@ const baseSummarizeTickets = async (tickets: Ticket[]): Promise<string> => {
   const ticketLines = tickets.map((t) => {
     const customerInfo = t.profiles ? `Customer: ${t.profiles.full_name} (${t.profiles.email})` : "No customer info";
     return `
-• Ticket #${t.ticket_number}
+• Ticket ID: ${t.id}
   Subject: ${t.subject}
   Description: ${t.description?.slice(0, 150)}${t.description && t.description.length > 150 ? "..." : ""}
   Priority: ${t.priority}
   Status: ${t.status}
+  Category: ${t.category || 'Uncategorized'}
   ${customerInfo}
   Created: ${new Date(t.created_at).toLocaleString()}`;
   }).join("\n");
@@ -36,7 +37,7 @@ const baseSummarizeTickets = async (tickets: Ticket[]): Promise<string> => {
     3. Highlight any urgent or critical issues
     4. Be concise but include key details
     5. Format the summary in a clear, structured way
-    6. Include the ticket numbers in your summary for reference`
+    6. Include the ticket IDs in your summary for reference`
   );
 
   const userMessage = new HumanMessage(

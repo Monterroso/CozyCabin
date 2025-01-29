@@ -22,56 +22,87 @@ interface AdminAgentRequest {
 }
 
 serve(async (req: Request) => {
+  const responseHeaders = {
+    ...corsHeaders,
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': req.headers.get('origin') || '*',
+  };
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
-      headers: {
-        ...corsHeaders,
-        'Access-Control-Allow-Origin': req.headers.get('origin') || '*',
-      }
+      headers: responseHeaders
     });
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': req.headers.get('origin') || '*',
+    return new Response(
+      JSON.stringify({
+        reply: "Method not allowed",
+        error: "Only POST requests are accepted"
+      }),
+      {
+        status: 405,
+        headers: responseHeaders
       }
-    });
+    );
   }
 
   try {
     const requestData: AdminAgentRequest = await req.json();
+    
     if (!requestData.messages || !requestData.newUserMessage) {
       throw new Error('Invalid request format');
     }
 
-    const reply = await handleAdminAgentRequest(
+    console.log('Processing request with message:', requestData.newUserMessage);
+    const response = await handleAdminAgentRequest(
       requestData.messages,
       requestData.newUserMessage
     );
+    console.log('Raw response from agent:', response);
 
-    return new Response(JSON.stringify({ reply }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': req.headers.get('origin') || '*',
-      },
-      status: 200
-    });
+    // Ensure we have a valid response object with required fields
+    if (!response) {
+      console.error('Response is undefined or null');
+      throw new Error('Invalid response from AI agent: Response is undefined');
+    }
+
+    if (typeof response.reply !== 'string') {
+      console.error('Response.reply is not a string:', response.reply);
+      throw new Error('Invalid response from AI agent: Reply is not a string');
+    }
+
+    const responseBody = {
+      reply: response.reply,
+      error: response.error
+    };
+
+    console.log('Sending response:', responseBody);
+
+    return new Response(
+      JSON.stringify(responseBody),
+      {
+        headers: responseHeaders,
+        status: 200
+      }
+    );
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': req.headers.get('origin') || '*',
-      },
-      status: 400
-    });
+    console.error('Error in Edge Function:', error);
+    
+    const errorResponse = {
+      reply: "An error occurred while processing your request.",
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+
+    return new Response(
+      JSON.stringify(errorResponse),
+      {
+        headers: responseHeaders,
+        status: 400
+      }
+    );
   }
 }); 

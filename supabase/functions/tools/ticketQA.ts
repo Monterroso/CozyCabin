@@ -3,11 +3,13 @@ import { RetrievalQAChain } from "npm:langchain/chains";
 import { PromptTemplate } from "npm:langchain/prompts";
 import { vectorStore } from "./vectorStore.ts";
 import { withAiLogging } from "./aiLogger.ts";
+import { tracer } from "../_shared/langsmith.ts";
 
 const chatModel = new ChatOpenAI({
   openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
   temperature: 0.3,
   modelName: "gpt-4-turbo-preview",
+  callbacks: [tracer],
 });
 
 // Custom prompt template for ticket QA
@@ -34,7 +36,8 @@ const baseTicketQA = async (question: string) => {
     {
       prompt: qaPrompt,
       returnSourceDocuments: true,
-      verbose: false
+      verbose: false,
+      callbacks: [tracer],
     }
   );
 
@@ -45,7 +48,7 @@ const baseTicketQA = async (question: string) => {
   return {
     answer: response.text,
     sources: response.sourceDocuments?.map(doc => doc.metadata)
-};
+  };
 };
 
 // Wrap with logging

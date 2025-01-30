@@ -1,14 +1,47 @@
-import { Client } from "npm:langsmith@0.1.10";
+import { Client, RunTree } from "npm:langsmith@0.2.0";
 import { LangChainTracer } from "npm:langchain@0.1.21/callbacks";
+import { v4 as uuidv4 } from "npm:uuid@9.0.0";
 
-// Initialize LangSmith client
+// Validate environment variables
+const LANGSMITH_API_KEY = Deno.env.get("LANGSMITH_API_KEY");
+const LANGCHAIN_TRACING_V2 = Deno.env.get("LANGCHAIN_TRACING_V2");
+const LANGCHAIN_PROJECT = Deno.env.get("LANGCHAIN_PROJECT") || "cozycabin";
+const LANGCHAIN_ENDPOINT = Deno.env.get("LANGCHAIN_ENDPOINT") || "https://api.smith.langchain.com";
+
+if (!LANGSMITH_API_KEY) {
+  console.error("LANGSMITH_API_KEY is not set in environment variables");
+}
+
+if (LANGCHAIN_TRACING_V2 !== "true") {
+  console.warn("LANGCHAIN_TRACING_V2 is not set to 'true', tracing may not work as expected");
+}
+
+// Initialize LangSmith client with validation
 export const client = new Client({
-  apiKey: Deno.env.get("LANGSMITH_API_KEY"),
+  apiKey: LANGSMITH_API_KEY,
+  endpoint: LANGCHAIN_ENDPOINT
 });
 
-// Initialize LangChain tracer
+// Test the client connection
+async function testLangSmithConnection() {
+  try {
+    // Use the client's built-in method to list projects
+    const projects = await client.listProjects();
+    console.log("LangSmith API connection test successful, found projects:", projects.length);
+    return true;
+  } catch (error) {
+    console.error("LangSmith API connection test failed:", {
+      error: error.message,
+      type: error.name,
+      stack: error.stack
+    });
+    return false;
+  }
+}
+
+// Initialize LangChain tracer with validation
 export const tracer = new LangChainTracer({
-  projectName: "cozycabin",
+  projectName: LANGCHAIN_PROJECT
 });
 
 // Helper to wrap LangChain calls with tracing
@@ -18,13 +51,25 @@ export function withLangSmithTracing<T, Args extends any[]>(
 ) {
   // Return a properly bound function
   const wrappedFn = async (...args: Args): Promise<T> => {
-    let currentRun;
+    // Only proceed with tracing if LANGCHAIN_TRACING_V2 is enabled
+    if (LANGCHAIN_TRACING_V2 !== "true") {
+      console.warn("Tracing disabled - LANGCHAIN_TRACING_V2 is not 'true'");
+      return fn(...args);
+    }
+
+    let runTree;
+    
     try {
-      // Create and await the run before proceeding
-      currentRun = await client.createRun({
+      // Create a unique ID for this run
+      const runId = uuidv4();
+      console.log('Creating new LangSmith run:', { runName, runId });
+
+      // Create a RunTree instance
+      runTree = new RunTree({
         name: runName,
-        project_name: "cozycabin",
         run_type: "chain",
+        id: runId,
+        project_name: LANGCHAIN_PROJECT,
         extra: {
           metadata: {
             environment: Deno.env.get("SUPABASE_URL") ? "production" : "development"
@@ -32,28 +77,38 @@ export function withLangSmithTracing<T, Args extends any[]>(
         }
       });
 
+      // Post the run to start it
+      await runTree.postRun();
+      console.log('LangSmith run created successfully:', { runId, runName });
+
       // Execute the wrapped function
       const result = await fn(...args);
 
-      // Only try to end the run if it was successfully created
-      if (currentRun) {
-        await currentRun.end({
-          outputs: { result }
-        });
-      }
+      // End the run with the result
+      await runTree.end({
+        outputs: { result }
+      });
+      await runTree.patchRun();
 
       return result;
     } catch (error) {
-      // Only try to end the run if it was successfully created
-      if (currentRun) {
-          await currentRun.end({
-          error: error instanceof Error ? error.message : "Unknown error",
-          outputs: { error }
+      console.error("Error in run execution:", error);
+      
+      // If we have a runTree, try to end it with error
+      if (runTree) {
+        try {
+          await runTree.end({
+            error: error instanceof Error ? error.message : "Unknown error",
+            outputs: { error }
           });
-      } else {
-        console.error("Failed to create LangSmith run:", error);
+          await runTree.patchRun();
+        } catch (endError) {
+          console.error("Error ending run:", endError);
         }
-      throw error;
+      }
+      
+      // If tracing fails, still try to execute the function
+      return fn(...args);
     }
   };
 

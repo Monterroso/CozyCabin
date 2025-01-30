@@ -76,15 +76,15 @@ async function handleRequest(
     };
   } catch (error) {
     console.error("Error in handleRequest:", error);
-    throw error;
+    return {
+      reply: "I apologize, but I encountered an error processing your request.",
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   }
 }
 
-// Create the wrapped version
-const wrappedHandler = withLangSmithTracing(
+// Create the wrapped version with proper tracing
+export const handleAdminAgentRequest = withLangSmithTracing(
   "admin_agent_request",
   handleRequest
-);
-
-// Export the wrapped function
-export { wrappedHandler as handleAdminAgentRequest }; 
+); 

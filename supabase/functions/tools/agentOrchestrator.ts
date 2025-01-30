@@ -1,34 +1,10 @@
 import { summarizeTickets } from "./summarizeTickets.ts";
 import { getUnassignedTickets } from "./getUnassignedTickets.ts";
 import { updateTicket } from "./updateTicket.ts";
-import { withAiLogging } from "./aiLogger.ts";
-import { ChatOpenAI } from "https://esm.sh/langchain@0.0.197/chat_models/openai";
-import { HumanMessage, SystemMessage } from "https://esm.sh/langchain@0.0.197/schema";
+import { HumanMessage, SystemMessage } from "npm:langchain@0.1.21/schema";
 import { categorizeTicket } from "./categorizeTicket.ts";
-import { Client } from "npm:langsmith";
-
-// Initialize LangSmith client
-const client = new Client({
-  apiKey: Deno.env.get("LANGSMITH_API_KEY"),
-});
-
-// Initialize the ChatOpenAI model with LangSmith tracing
-const chatModel = new ChatOpenAI({
-  openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
-  temperature: 0.7,
-  modelName: "gpt-4-1106-preview",
-  callbacks: [{
-    handleLLMEnd: async (output) => {
-      await client.createRun({
-        name: "chat_completion",
-        run_type: "llm",
-        inputs: output.prompts,
-        outputs: { response: output.response },
-        extra: { model: "gpt-4-1106-preview" }
-      });
-    }
-  }],
-});
+import { withLangSmithTracing } from "../_shared/langsmith.ts";
+import { chatModel } from "../_shared/models.ts";
 
 export interface Message {
   role: "user" | "assistant";
@@ -40,6 +16,7 @@ export interface AdminAgentResponse {
   error?: string;
 }
 
+// Define the base function first
 async function handleRequest(
   conversationHistory: Message[],
   newUserMessage: string
@@ -86,7 +63,7 @@ async function handleRequest(
       }
       
       console.log('Generating summary for tickets');
-      const summary = await summarizeTickets(tickets);
+      const summary = await summarizeTickets(tickets, chatModel);
       return {
         reply: summary
       };
@@ -103,8 +80,11 @@ async function handleRequest(
   }
 }
 
-// Export the handler with just AI logging since LangSmith is handled at the model level
-export const handleAdminAgentRequest = withAiLogging(
+// Create the wrapped version
+const wrappedHandler = withLangSmithTracing(
   "admin_agent_request",
   handleRequest
-); 
+);
+
+// Export the wrapped function
+export { wrappedHandler as handleAdminAgentRequest }; 

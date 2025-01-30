@@ -3,7 +3,6 @@ import { SupabaseVectorStore } from "npm:langchain/vectorstores/supabase";
 import { OpenAIEmbeddings } from "npm:langchain/embeddings/openai";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import type { Database } from "../_shared/database.types.ts";
-import { withAiLogging } from "./aiLogger.ts";
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -22,11 +21,10 @@ export const vectorStore = new SupabaseVectorStore(embeddings, {
   queryName: "match_tickets",
 });
 
-// Function to update ticket embeddings
-const baseUpdateTicketEmbeddings = async (
+export async function updateTicketEmbeddings(
   ticketId: string,
   content: string
-): Promise<boolean> => {
+): Promise<boolean> {
   try {
     const vector = await embeddings.embedQuery(content);
     
@@ -41,22 +39,15 @@ const baseUpdateTicketEmbeddings = async (
     console.error("Error updating ticket embeddings:", error);
     return false;
   }
-};
+}
 
-// Wrap with logging
-export const updateTicketEmbeddings = withAiLogging(
-  "update_ticket_embeddings",
-  baseUpdateTicketEmbeddings
-);
-
-// Function to find similar tickets
-const baseFindSimilarTickets = async (
+export async function findSimilarTickets(
   content: string,
   options: {
     match_threshold?: number;
     match_count?: number;
   } = {}
-) => {
+) {
   try {
     const vector = await embeddings.embedQuery(content);
     
@@ -73,10 +64,4 @@ const baseFindSimilarTickets = async (
     console.error("Error finding similar tickets:", error);
     return [];
   }
-};
-
-// Wrap with logging
-export const findSimilarTickets = withAiLogging(
-  "find_similar_tickets",
-  baseFindSimilarTickets
-); 
+} 

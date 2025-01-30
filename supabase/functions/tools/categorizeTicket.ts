@@ -1,7 +1,6 @@
-import { ChatOpenAI } from "https://esm.sh/langchain@0.0.197/chat_models/openai";
 import { SystemMessage, HumanMessage } from "https://esm.sh/langchain@0.0.197/schema";
 import type { Database } from "../_shared/database.types";
-import { withAiLogging } from "./aiLogger.ts";
+import { chatModel } from "../_shared/models.ts";
 
 type Ticket = Database["public"]["Tables"]["tickets"]["Row"] & {
   profiles?: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -9,17 +8,11 @@ type Ticket = Database["public"]["Tables"]["tickets"]["Row"] & {
 
 type TicketCategory = Database["public"]["Enums"]["ticket_category"];
 
-const chatModel = new ChatOpenAI({
-  openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
-  temperature: 0.0, // Use 0 for consistent categorization
-  modelName: "gpt-4-1106-preview"
-});
-
-const baseCategorizeTicket = async (ticket: Ticket): Promise<{
+async function categorizeTicket(ticket: Ticket): Promise<{
   category: TicketCategory;
   confidence: number;
   reasoning: string;
-}> => {
+}> {
   try {
     const systemPrompt = new SystemMessage(
       `You are an expert ticket categorization system. Analyze the ticket and:
@@ -84,15 +77,11 @@ Status: ${ticket.status}
       reasoning: `Error: ${error.message}`
     };
   }
-};
+}
 
 // Type guard to validate the category
 function isValidTicketCategory(category: string): category is TicketCategory {
   return ["billing", "technical", "account", "feature_request", "bug", "security", "other"].includes(category);
 }
 
-// Wrap the base function with logging
-export const categorizeTicket = withAiLogging(
-  "categorize_ticket",
-  baseCategorizeTicket
-); 
+export { categorizeTicket }; 

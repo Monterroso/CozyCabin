@@ -1,5 +1,4 @@
 import { vectorStore } from "./vectorStore";
-import { withAiLogging } from "./aiLogger";
 import type { Database } from "../_shared/database.types";
 
 type Ticket = Database["public"]["Tables"]["tickets"]["Row"];
@@ -14,11 +13,10 @@ interface SearchOptions {
   includeMessages?: boolean;
 }
 
-// Base function for semantic ticket search
-const baseSearchTickets = async (
+export async function searchTickets(
   query: string,
   options: SearchOptions = {}
-) => {
+) {
   const {
     threshold = 0.78,
     limit = 5,
@@ -71,19 +69,12 @@ const baseSearchTickets = async (
     console.error("Error in semantic search:", error);
     throw error;
   }
-};
+}
 
-// Wrap with logging
-export const searchTickets = withAiLogging(
-  "semantic_search",
-  baseSearchTickets
-);
-
-// Base function to find related tickets and messages
-const baseFindRelated = async (
+export async function findRelated(
   ticketId: string,
   options: Omit<SearchOptions, "threshold"> = {}
-) => {
+) {
   try {
     const { data: ticket, error } = await vectorStore.supabase
       .from("tickets")
@@ -104,19 +95,12 @@ const baseFindRelated = async (
     console.error("Error finding related content:", error);
     throw error;
   }
-};
+}
 
-// Wrap with logging
-export const findRelated = withAiLogging(
-  "find_related",
-  baseFindRelated
-);
-
-// Base function to search by topic
-const baseSearchByTopic = async (
+export async function searchByTopic(
   topic: string,
   options: SearchOptions = {}
-) => {
+) {
   const enhancedQuery = `Find content related to the topic: ${topic}`;
   return await searchTickets(enhancedQuery, {
     threshold: 0.75, // Lower threshold for topic search
@@ -124,10 +108,4 @@ const baseSearchByTopic = async (
     includeMessages: true, // Include messages in topic search
     ...options
   });
-};
-
-// Wrap with logging
-export const searchByTopic = withAiLogging(
-  "search_by_topic",
-  baseSearchByTopic
-); 
+} 

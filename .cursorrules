@@ -1,1 +1,1 @@
-We're using Yarn and not NPM for package management.
+We're using Yarn and not NPM for package management. Do not use outdated packages, check to see if packages are out of date and ask for new ones.

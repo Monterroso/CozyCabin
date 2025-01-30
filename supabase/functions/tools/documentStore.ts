@@ -2,7 +2,6 @@ import { RecursiveCharacterTextSplitter } from "npm:langchain/text_splitter";
 import { SupabaseVectorStore } from "npm:langchain/vectorstores/supabase";
 import { OpenAIEmbeddings } from "npm:langchain/embeddings/openai";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { withAiLogging } from "./aiLogger.ts";
 import type { Database } from "../_shared/database.types.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -20,14 +19,13 @@ export const documentStore = new SupabaseVectorStore(embeddings, {
   queryName: "match_documents",
 });
 
-// Base function to store a document
-const baseStoreDocument = async (
+export async function storeDocument(
   document: {
     title: string;
     content: string;
     metadata?: Record<string, any>;
   }
-) => {
+) {
   try {
     // Split document into chunks
     const splitter = new RecursiveCharacterTextSplitter({
@@ -55,17 +53,16 @@ const baseStoreDocument = async (
     console.error("Error storing document:", error);
     throw error;
   }
-};
+}
 
-// Base function to search documents
-const baseSearchDocuments = async (
+export async function searchDocuments(
   query: string,
   options: {
     limit?: number;
     threshold?: number;
     metadata?: Record<string, any>;
   } = {}
-) => {
+) {
   try {
     const { limit = 5, threshold = 0.8, metadata } = options;
 
@@ -84,10 +81,9 @@ const baseSearchDocuments = async (
     console.error("Error searching documents:", error);
     throw error;
   }
-};
+}
 
-// Base function to delete document
-const baseDeleteDocument = async (title: string) => {
+export async function deleteDocument(title: string) {
   try {
     const { error } = await supabase
       .from("knowledge_base")
@@ -104,20 +100,4 @@ const baseDeleteDocument = async (title: string) => {
     console.error("Error deleting document:", error);
     throw error;
   }
-};
-
-// Wrap with logging
-export const storeDocument = withAiLogging(
-  "store_document",
-  baseStoreDocument
-);
-
-export const searchDocuments = withAiLogging(
-  "search_documents",
-  baseSearchDocuments
-);
-
-export const deleteDocument = withAiLogging(
-  "delete_document",
-  baseDeleteDocument
-); 
+} 

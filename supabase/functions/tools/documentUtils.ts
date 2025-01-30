@@ -1,16 +1,8 @@
 import { storeDocument, searchDocuments, documentStore } from "./documentStore.ts";
-import { withAiLogging } from "./aiLogger.ts";
-import { ChatOpenAI } from "npm:langchain/chat_models/openai";
 import { PromptTemplate } from "npm:langchain/prompts";
+import { chatModel } from "../_shared/models.ts";
 
-const chatModel = new ChatOpenAI({
-  openAIApiKey: Deno.env.get("OPENAI_API_KEY"),
-  modelName: "gpt-4-turbo-preview",
-  temperature: 0.3,
-});
-
-// Base function to extract key information from a document
-const baseExtractDocumentInfo = async (content: string) => {
+export async function extractDocumentInfo(content: string) {
   try {
     const prompt = PromptTemplate.fromTemplate(`
       Extract key information from the following document.
@@ -39,16 +31,15 @@ const baseExtractDocumentInfo = async (content: string) => {
     console.error("Error extracting document info:", error);
     throw error;
   }
-};
+}
 
-// Base function to find relevant documentation for a ticket
-const baseFindRelevantDocs = async (
+export async function findRelevantDocs(
   ticket: {
     subject: string;
     description?: string;
     category?: string;
   }
-) => {
+) {
   try {
     const query = `${ticket.subject}\n${ticket.description ?? ""}`;
     
@@ -72,12 +63,11 @@ const baseFindRelevantDocs = async (
     console.error("Error finding relevant docs:", error);
     throw error;
   }
-};
+}
 
-// Base function to generate document summary
-const baseGenerateDocumentSummary = async (
+export async function generateDocumentSummary(
   documents: Array<{ content: string; metadata: Record<string, any> }>
-) => {
+) {
   try {
     const prompt = PromptTemplate.fromTemplate(`
       Summarize the key points from these related documents.
@@ -109,10 +99,9 @@ const baseGenerateDocumentSummary = async (
     console.error("Error generating summary:", error);
     throw error;
   }
-};
+}
 
-// Base function to suggest document updates
-const baseSuggestDocumentUpdates = async (
+export async function suggestDocumentUpdates(
   document: {
     title: string;
     content: string;
@@ -123,7 +112,7 @@ const baseSuggestDocumentUpdates = async (
     description?: string;
     resolution?: string;
   }>
-) => {
+) {
   try {
     const prompt = PromptTemplate.fromTemplate(`
       Based on recent support tickets, suggest updates for this document.
@@ -163,25 +152,4 @@ const baseSuggestDocumentUpdates = async (
     console.error("Error suggesting updates:", error);
     throw error;
   }
-};
-
-// Wrap with logging
-export const extractDocumentInfo = withAiLogging(
-  "extract_document_info",
-  baseExtractDocumentInfo
-);
-
-export const findRelevantDocs = withAiLogging(
-  "find_relevant_docs",
-  baseFindRelevantDocs
-);
-
-export const generateDocumentSummary = withAiLogging(
-  "generate_document_summary",
-  baseGenerateDocumentSummary
-);
-
-export const suggestDocumentUpdates = withAiLogging(
-  "suggest_document_updates",
-  baseSuggestDocumentUpdates
-); 
+} 
